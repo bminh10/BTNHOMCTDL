@@ -469,4 +469,5 @@ int main() {
 	delete[]a;
 	delete[]sz;
 	return 0;
+
 }
