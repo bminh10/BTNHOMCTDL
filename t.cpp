@@ -1,0 +1,623 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <queue>
+#include <stack>
+#include <cmath>
+#include <iomanip>
+using namespace std;
+
+#define M 100
+const double INF = 1000; 
+
+//========== Cấu trúc đồ thị ==========
+struct Node {
+    int info;
+    double w;
+    Node* next;
+};
+
+struct Edge {
+    int u, v;
+    double w;
+};
+
+//========== Biến toàn cục ==========
+Node* a[M]; // Danh sách kề
+Edge e[M];  // Cấu trúc cạnh
+double aMatrix[M][M];  // Ma trận kề 
+bool visited[M];
+int n = 0, m = 0; // Số đỉnh và số cạnh 
+
+//========== Khởi tạo ==========
+bool isValid() {
+    if (n < 0) return false;
+    int max_edges = n * (n - 1) / 2;
+    if (m < 0 || m > max_edges) return false;
+    return true;
+}
+
+void init() {
+    for (int i = 0; i < M; i++) a[i] = nullptr;
+    // Khởi tạo ma trận double
+    for (int i = 0; i < M; i++)
+        for (int j = 0; j < M; j++)
+            aMatrix[i][j] = 0.0;
+    memset(visited, false, sizeof(visited));
+}
+
+//========== Insert Node ==========
+void insertNode(Node*& head, int x, double w) {
+    Node* p = new Node{ x, w, nullptr };
+
+    if (head == nullptr || x < head->info) {
+        p->next = head;
+        head = p;
+        return;
+    }
+
+    Node* tmp = head;
+    while (tmp->next && tmp->next->info < x)
+        tmp = tmp->next;
+
+    p->next = tmp->next;
+    tmp->next = p;
+}
+
+//========== Nhập dữ liệu ==========
+void inputDataList() {
+    cin >> n >> m;
+    if (!isValid()) {
+        cout<<"Lỗi số cạnh"<<endl;
+        return;
+    }
+    init();
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        double w;
+        cin >> u >> v >> w;
+
+        e[i] = { u, v, w };
+        insertNode(a[u], v, w);
+        insertNode(a[v], u, w);  // vô hướng
+        aMatrix[u][v] = aMatrix[v][u] = w;
+    }
+}
+
+void readFileEdges(const string& filename) {
+    ifstream f(filename);
+    if (!f.is_open()) {
+        cout<<"Cannot open file"<<endl;
+        return;
+    }
+
+    f >> n >> m;
+    if (!isValid()) {
+        cout<<"Lỗi số cạnh"<<endl;
+        f.close();
+        return;
+    }
+    init();
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        double w;
+        f >> u >> v >> w;
+
+        e[i] = { u, v, w };
+        insertNode(a[u], v, w);
+        insertNode(a[v], u, w);  // vô hướng
+        aMatrix[u][v] = aMatrix[v][u] = w;
+    }
+    f.close();
+}
+
+//========== Chuyển sang ma trận ==========
+void transformMatrix() {
+    // Đảm bảo khởi tạo
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            aMatrix[i][j] = 0.0;
+
+    for (int i = 0; i < m; i++) {
+        int u = e[i].u, v = e[i].v;
+        double w = e[i].w;
+        if (u >= 0 && u < n && v >= 0 && v < n) {
+            aMatrix[u][v] = w;
+            aMatrix[v][u] = w;
+        }
+    }
+}
+
+//========== Xuất đồ thị ==========
+void outputAdjList() {
+    cout<<"Danh sach ke : "<<endl;
+    for (int i = 0; i < n; i++) {
+        cout << i << ": ";
+        Node* p = a[i];
+        while (p) {
+            cout << p->info << "(" << p->w << ") ";
+            p = p->next;
+        }
+        cout << endl;
+    }
+}
+
+void displayMatrix() {
+    cout << "Ma tran ke:\n";
+    cout << fixed << setprecision(2);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++)
+            cout << setw(8) << aMatrix[i][j];
+        cout << endl;
+    }
+}
+
+//========== DFS & BFS ==========
+void dfs(int u, int choice){
+    visited[u] = true;
+    if(choice == 1) cout<<u<<" ";
+    Node*p = a[u];
+    while(p){
+        if(!visited[p->info]) dfs(p->info, choice);
+        p = p->next;
+    }
+}
+
+void displayDfs(int start, int choice = 0){
+    for(int i = 0; i < n; i++) visited[i] = false;
+    if (start >= 0 && start < n) dfs(start, choice);
+}
+
+void displayDfsStack(int start, int choice = 0){
+    for(int i = 0; i < n; i++) visited[i] = false;
+
+    if (start < 0 || start >= n) return;
+
+    stack<int> s;
+    visited[start] = true;
+    s.push(start);
+
+    while(!s.empty()){
+        int u = s.top(); s.pop();
+        if(choice == 1) cout<<u<<" ";
+
+        Node* p = a[u];
+        while(p){
+            if(!visited[p->info]){
+                visited[p->info] = true;
+                s.push(p->info);
+            }
+            p = p->next;
+        }
+    }
+}
+
+void displayBfs(int start, int choice = 0) {
+    for(int i = 0; i < n; i++) visited[i] = false;
+    if (start < 0 || start >= n) return;
+
+    queue<int> q;
+    
+    visited[start] = true;
+    q.push(start);
+    
+    while (!q.empty()) {
+        int u = q.front();  q.pop();
+        
+        if(choice == 1) cout<<u<<" ";
+        
+        Node* p = a[u];
+        while (p) {
+            if (!visited[p->info]) {
+                visited[p->info] = true;
+                q.push(p->info);
+            }
+            p = p->next;
+        }
+    }
+}
+
+//========== Kiểm tra liên thông ==========
+bool is_Connected() {
+    if (n == 0) return true;
+    for(int i = 0; i < n; i++) visited[i] = false;
+
+    int start = 0;
+    dfs(start, 0);  // choice = 0: không in
+
+    for (int i = 0; i < n; i++)
+        if (!visited[i])
+            return false;
+
+    return true;
+}
+
+void check_Connected() {
+    cout << (is_Connected() ? "Connected graph\n" : "Disconnected graph\n");
+}
+
+//========== Đếm số thành phần liên thông ==========
+int countConnectedComponents() {
+    memset(visited, false, sizeof(visited));
+    int count = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (!visited[i]) {
+            dfs(i, 0);
+            count++;
+        }
+    }
+    return count;
+}
+
+//========== Kiểm tra đỉnh/cạnh ==========
+bool existVertex(int u) {
+    return (u >= 0 && u < n);
+}
+
+bool existEdge(int u, int v) {
+    for (int i = 0; i < m; i++)
+        if ((e[i].u == u && e[i].v == v) ||
+            (e[i].u == v && e[i].v == u))
+            return true;
+    return false;
+}
+
+//========== Xóa cạnh / đỉnh ==========
+bool deleteNode(Node*& head, int target) {
+    if (!head) return false;
+
+    if (head->info == target) {
+        Node* tmp = head;
+        head = head->next;
+        delete tmp;
+        return true;
+    }
+
+    Node* p = head;
+    while (p->next) {
+        if (p->next->info == target) {
+            Node* tmp = p->next;
+            p->next = tmp->next;
+            delete tmp;
+            return true;
+        }
+        p = p->next;
+    }
+    return false;
+}
+
+void removeEdge(int u, int v) {
+    if (!existVertex(u) || !existVertex(v)) return;
+    if (!existEdge(u, v)) return;
+
+    // xóa trong danh sách cạnh e[]
+    int new_m = 0;
+    for (int i = 0; i < m; i++)
+        if (!((e[i].u == u && e[i].v == v) ||
+              (e[i].u == v && e[i].v == u)))
+            e[new_m++] = e[i];
+    m = new_m;
+
+    deleteNode(a[u], v);
+    deleteNode(a[v], u);
+
+    aMatrix[u][v] = aMatrix[v][u] = 0.0;
+}
+
+void removeVertex(int u) {
+    if (!existVertex(u)) return;
+
+    // delete list
+    Node* p = a[u];
+    while (p) {
+        Node* tmp = p;
+        p = p->next;
+        delete tmp;
+    }
+    a[u] = nullptr;
+
+    //Danh sách kề
+    for (int i = 0; i < n; i++)
+        deleteNode(a[i], u);
+
+    //Edges
+    int new_m = 0;
+    for (int i = 0; i < m; i++)
+        if (e[i].u != u && e[i].v != u)
+            e[new_m++] = e[i];
+    m = new_m;
+
+    //Ma trận
+    for (int i = 0; i < n; i++)
+        aMatrix[u][i] = aMatrix[i][u] = 0.0;
+}
+
+//========== Thêm đỉnh và cạnh ==========
+void addEdge(int u, int v, double w) {
+    if (!existVertex(u) || !existVertex(v)) return;
+    if (existEdge(u, v)) return;
+
+    if (m < M) {
+        e[m++] = { u, v, w };
+        insertNode(a[u], v, w);
+        insertNode(a[v], u, w);
+        aMatrix[u][v] = aMatrix[v][u] = w;
+    }
+}
+
+void addVertex(int u) {
+    if (u < 0) return;
+    if (u >= n) n = u + 1;
+}
+
+
+
+// ========== 1. Dijkstra ==========
+void dijkstra(int start, int end = -1){
+    if (!existVertex(start)) {
+        cerr << "Invalid start vertex for Dijkstra\n";
+        return;
+    }
+
+    double d[M];
+    int pre[M];
+
+    for(int i = 0; i < n; i++){
+        d[i] = INF;
+        pre[i] = -1;
+        visited[i] = false;
+    }
+
+    d[start] = 0;
+
+    for(int i = 0; i < n; i++){
+        int u = -1;
+        double mV = INF;
+
+        // Tìm đỉnh chưa thăm có khoảng cách nhỏ nhất
+        for(int j = 0; j < n; j++){
+            if(!visited[j] && d[j] < mV){
+                mV = d[j];
+                u = j;
+            }
+        }
+
+        if(u == -1) break;
+
+        visited[u] = true;
+
+        // Cập nhật đỉnh kề
+        Node *p = a[u];
+        while(p){
+            int v = p->info;
+            double w = p->w;
+
+            if(!visited[v] && d[u] + w < d[v]){
+                d[v] = d[u] + w;
+                pre[v] = u;
+            }
+
+            p = p->next;
+        }
+    }
+
+    cout << "Dijkstra"<<endl;
+    cout << "start : "<<start<<endl;
+    double res = 0;
+
+    if (end == -1) {
+        for (int i = 0; i < n; i++) {
+            if (i == start) continue;
+
+            cout<<start<<"->" <<i<<":"<<d[i]<<endl;
+            if (d[i] < INF) res += d[i];
+        }
+        cout<<"Tổng trọng số đường đi : "<<res<<endl;
+    }
+    else {
+        cout <<start<<"->"<<end<<": "<<d[end]<<endl;
+    }
+}
+
+// ========== 2. Bellman-Ford  ==========
+bool bellmanFord(int start, int end = -1){
+    if (!existVertex(start)) {
+        cerr << "Invalid start vertex for Bellman-Ford\n";
+        return false;
+    }
+
+    double d[M];
+    int pre[M];
+
+    for(int i = 0; i < n; i++){
+        d[i] = INF;
+        pre[i] = -1;
+    }
+
+    d[start] = 0;
+
+    // Relax edges n-1 times
+    for(int iter = 0; iter < n-1; iter++){
+        for(int j = 0; j < m; j++){
+            int u = e[j].u;
+            int v = e[j].v;
+            double w = e[j].w;
+
+            if(d[u] != INF && d[u] + w < d[v]){
+                d[v] = d[u] + w;
+                pre[v] = u;
+            }
+            // since undirected stored as single edge, also check reverse
+            if(d[v] != INF && d[v] + w < d[u]){
+                d[u] = d[v] + w;
+                pre[u] = v;
+            }
+        }
+    }
+
+    // Kiểm tra chu trình âm
+    for(int i = 0; i < m; i++){
+        int u = e[i].u;
+        int v = e[i].v;
+        double w = e[i].w;
+        
+        if (d[u] != INF && d[u] + w < d[v]) {
+            cout << "Chu trinh am"<<endl;
+            return false;
+        }
+        if (d[v] != INF && d[v] + w < d[u]) {
+            cout << "Chu trinh am"<<endl;
+            return false;
+        }
+    }
+
+    cout << "Bellman-Ford"<<endl;
+    cout << "start : "<<start<<endl;
+    double res = 0;
+
+    if (end == -1) {
+        for (int i = 0; i < n; i++) {
+            if (i == start) continue;
+
+            cout<<start<<"->" <<i<<":"<<d[i]<<endl;
+            if (d[i] < INF) res += d[i];
+        }
+        cout<<"Tổng trọng số đường đi : "<<res<<endl;
+    }
+    else {
+        cout <<start<<"->"<<end<<": "<<d[end]<<endl;
+    }
+
+    return true;
+}
+
+// ========== 3. Floyd-Warshall ==========
+void FW(int start, int end = -1){
+    if (!existVertex(start)) {
+        cerr << "Invalid start vertex for Floyd-Warshall\n";
+        return;
+    }
+
+    double d[M][M];
+    int pre[M][M];
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (i == j) {
+                d[i][j] = 0;
+            } else if (aMatrix[i][j] != 0.0) {
+                d[i][j] = aMatrix[i][j];
+            } else {
+                d[i][j] = INF;
+            }
+            pre[i][j] = -1;
+        }
+    }
+
+    for(int k = 0; k< n; k++){
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < n; j++){
+                if(d[i][k] + d[k][j] < d[i][j]){
+                    d[i][j] = d[i][k] + d[k][j];
+                    pre[i][j] = k;
+                }
+            }
+        }
+    }
+
+    cout <<"Floyd-Warshall"<<endl;
+    cout <<"start: "<<start<<endl;
+
+    double res = 0;
+
+    if (end == -1) {
+        for (int i = 0; i < n; i++) {
+            if (i == start) continue;
+
+            cout<<start<<"->"<<i<<":"<<d[start][i] <<endl;
+            if (d[start][i] < INF) res += d[start][i];
+        }
+        cout<<"Tong trong so duong di: "<<res<<endl;
+    }
+    else {
+        cout<<start<<"->"<<end<<":"<<d[start][end]<<endl;
+    }
+}
+
+void Menu(){
+
+}
+
+int main() {
+    // Đọc dữ liệu từ file hoặc nhập tay
+    // readFileEdges("graph.txt");
+    inputDataList();   // bạn đang dùng nhập tay, mình giữ nguyên
+
+    cout << "\n=== DU LIEU DO THI ===\n";
+    cout << "So dinh: " << n << "\n";
+    cout << "So canh: " << m << "\n\n";
+
+    // ======== In danh sách kề =========
+    cout << "=== Danh sach ke ===\n";
+    for (int i = 0; i < n; i++) {
+        cout << i << ": ";
+        Node* p = a[i];
+        while (p != nullptr) {
+            cout << "(" << p->info << ", " << p->w << ") ";
+            p = p->next;
+        }
+        cout << "\n";
+    }
+
+    // ======== In ma trận kề =========
+    cout << "\n=== Ma tran ke ===\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++)
+            cout << aMatrix[i][j] << " ";
+        cout << "\n";
+    }
+
+    cout << "\n==========================\n";
+    cout << "=== CHAY THUAT TOAN ===\n";
+    cout << "==========================\n\n";
+
+    // ======== BFS =========
+    cout << "--- BFS (bat dau tu dinh 0) ---\n";
+    displayBfs(0, 1);
+    cout << "\n";
+
+    // ======== DFS =========
+    cout << "--- DFS (bat dau tu dinh 0) ---\n";
+    displayDfs(0, 1);
+    cout << "\n";
+
+    // ======== DFS bằng stack =========
+    cout << "--- DFS Stack (bat dau tu dinh 0) ---\n";
+    displayDfsStack(0, 1);
+    cout << "\n";
+
+    // ======== Kiểm tra liên thông =========
+    cout << "\n--- Kiem tra lien thong ---\n";
+    cout << (is_Connected() ? "Connected\n" : "Not connected\n");
+
+    cout << "--- So thanh phan lien thong ---\n";
+    cout << countConnectedComponents() << "\n";
+
+    // ======== Dijkstra =========
+    cout << "\n--- Dijkstra (bat dau tu dinh 0) ---\n";
+    dijkstra(0);
+
+    // ======== Floyd–Warshall =========
+    cout << "\n--- Floyd–Warshall ---\n";
+    FW(0);
+
+    // ======== Bellman–Ford =========
+    cout << "\n--- Bellman–Ford (bat dau tu dinh 0) ---\n";
+    bellmanFord(0);
+
+    cout << "\n=== KET THUC ===\n";
+    return 0;
+}
