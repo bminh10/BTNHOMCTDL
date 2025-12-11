@@ -155,6 +155,8 @@ void displayMatrix() {
 }
 
 //========== DFS & BFS ==========
+//choice == 0 : Chỉ thực thi hàm không xuất ra
+//choice == 1 : Thực thi và xuất ra màn hình (dùng để duyệt)
 void dfs(int u, int choice){
     visited[u] = true;
     if(choice == 1) cout<<u<<" ";
@@ -167,7 +169,7 @@ void dfs(int u, int choice){
 
 void displayDfs(int start, int choice = 0){
     for(int i = 0; i < n; i++) visited[i] = false;
-    if (start >= 0 && start < n) dfs(start, choice);
+    dfs(start, choice);
 }
 
 void displayDfsStack(int start, int choice = 0){
@@ -176,6 +178,8 @@ void displayDfsStack(int start, int choice = 0){
     if (start < 0 || start >= n) return;
 
     stack<int> s;
+    stack<int> tmp; // stack tạm để đảo thứ tự
+
     visited[start] = true;
     s.push(start);
 
@@ -187,9 +191,14 @@ void displayDfsStack(int start, int choice = 0){
         while(p){
             if(!visited[p->info]){
                 visited[p->info] = true;
-                s.push(p->info);
+                tmp.push(p->info);
             }
             p = p->next;
+        }
+        // Thêm vào stack theo thứ tự ngược của tmp
+        while(!tmp.empty()){
+            s.push(tmp.top());
+            tmp.pop();
         }
     }
 }
@@ -251,6 +260,45 @@ int countConnectedComponents() {
     }
     return count;
 }
+
+
+//========== Kiểm tra chu trình ==========
+//Ý tưởng: gặp đỉnh đã thăm nhưng không phải cha
+//
+
+bool dfsCT(int u, int parent){
+    visited[u] = true;
+
+    Node* p = a[u];
+    while(p){
+        int v = p->info;
+        //dfsCT(v,u) xem coi nếu u->v là cạnh kề thì có cách nào khác từ v->u không
+        //vd 1->3 là cạnh kề thì từ 3->1 có đi qua điểm nào khác không
+        if(!visited[v] && dfsCT(v,u))   return true;
+        //Kiểm tra nếu đi qua thêm một đỉnh mà khác đỉnh cha thì nó tạo thành chu trình
+        //vd v = 2; 1->3 và 3->2->1
+        //nếu v là cha; v = v ban đầu nghĩa là 1->3 và 3->1
+        else if(v != parent) return true;
+
+        p = p->next;
+    }
+    return false;
+}
+
+
+bool is_Cycle(){
+    for(int i = 0; i < n; i++) visited[i] = false;
+
+    for(int i = 0; i < n; i++){
+        if(!visited[i] && dfsCT(i,-1))  return true;
+    }
+    return false;
+}
+
+void checkCycle(){
+    cout << (is_Cycle() ? "Graph has cycle\n" : "Graph hasn't cycle\n");
+}
+
 
 //========== Kiểm tra đỉnh/cạnh ==========
 bool existVertex(int u) {
@@ -357,11 +405,6 @@ void addVertex(int u) {
 
 // ========== 1. Dijkstra ==========
 void dijkstra(int start, int end = -1){
-    if (!existVertex(start)) {
-        cerr << "Invalid start vertex for Dijkstra\n";
-        return;
-    }
-
     double d[M];
     int pre[M];
 
@@ -404,8 +447,8 @@ void dijkstra(int start, int end = -1){
         }
     }
 
-    cout << "Dijkstra"<<endl;
-    cout << "start : "<<start<<endl;
+    cout<<"Dijkstra"<<endl;
+    cout<<"start : "<<start<<endl;
     double res = 0;
 
     if (end == -1) {
@@ -413,7 +456,7 @@ void dijkstra(int start, int end = -1){
             if (i == start) continue;
 
             cout<<start<<"->" <<i<<":"<<d[i]<<endl;
-            if (d[i] < INF) res += d[i];
+            res += d[i];
         }
         cout<<"Tổng trọng số đường đi : "<<res<<endl;
     }
@@ -424,11 +467,6 @@ void dijkstra(int start, int end = -1){
 
 // ========== 2. Bellman-Ford  ==========
 bool bellmanFord(int start, int end = -1){
-    if (!existVertex(start)) {
-        cerr << "Invalid start vertex for Bellman-Ford\n";
-        return false;
-    }
-
     double d[M];
     int pre[M];
 
@@ -439,7 +477,6 @@ bool bellmanFord(int start, int end = -1){
 
     d[start] = 0;
 
-    // Relax edges n-1 times
     for(int iter = 0; iter < n-1; iter++){
         for(int j = 0; j < m; j++){
             int u = e[j].u;
@@ -450,7 +487,7 @@ bool bellmanFord(int start, int end = -1){
                 d[v] = d[u] + w;
                 pre[v] = u;
             }
-            // since undirected stored as single edge, also check reverse
+
             if(d[v] != INF && d[v] + w < d[u]){
                 d[u] = d[v] + w;
                 pre[u] = v;
@@ -474,8 +511,8 @@ bool bellmanFord(int start, int end = -1){
         }
     }
 
-    cout << "Bellman-Ford"<<endl;
-    cout << "start : "<<start<<endl;
+    cout<<"Bellman-Ford"<<endl;
+    cout<<"start : "<<start<<endl;
     double res = 0;
 
     if (end == -1) {
@@ -496,11 +533,6 @@ bool bellmanFord(int start, int end = -1){
 
 // ========== 3. Floyd-Warshall ==========
 void FW(int start, int end = -1){
-    if (!existVertex(start)) {
-        cerr << "Invalid start vertex for Floyd-Warshall\n";
-        return;
-    }
-
     double d[M][M];
     int pre[M][M];
 
@@ -528,8 +560,8 @@ void FW(int start, int end = -1){
         }
     }
 
-    cout <<"Floyd-Warshall"<<endl;
-    cout <<"start: "<<start<<endl;
+    cout<<"Floyd-Warshall"<<endl;
+    cout<<"start: "<<start<<endl;
 
     double res = 0;
 
@@ -538,7 +570,7 @@ void FW(int start, int end = -1){
             if (i == start) continue;
 
             cout<<start<<"->"<<i<<":"<<d[start][i] <<endl;
-            if (d[start][i] < INF) res += d[start][i];
+            res += d[start][i];
         }
         cout<<"Tong trong so duong di: "<<res<<endl;
     }
@@ -551,73 +583,8 @@ void Menu(){
 
 }
 
-int main() {
-    // Đọc dữ liệu từ file hoặc nhập tay
-    // readFileEdges("graph.txt");
-    inputDataList();   // bạn đang dùng nhập tay, mình giữ nguyên
+int main(){
+    Menu();
 
-    cout << "\n=== DU LIEU DO THI ===\n";
-    cout << "So dinh: " << n << "\n";
-    cout << "So canh: " << m << "\n\n";
-
-    // ======== In danh sách kề =========
-    cout << "=== Danh sach ke ===\n";
-    for (int i = 0; i < n; i++) {
-        cout << i << ": ";
-        Node* p = a[i];
-        while (p != nullptr) {
-            cout << "(" << p->info << ", " << p->w << ") ";
-            p = p->next;
-        }
-        cout << "\n";
-    }
-
-    // ======== In ma trận kề =========
-    cout << "\n=== Ma tran ke ===\n";
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++)
-            cout << aMatrix[i][j] << " ";
-        cout << "\n";
-    }
-
-    cout << "\n==========================\n";
-    cout << "=== CHAY THUAT TOAN ===\n";
-    cout << "==========================\n\n";
-
-    // ======== BFS =========
-    cout << "--- BFS (bat dau tu dinh 0) ---\n";
-    displayBfs(0, 1);
-    cout << "\n";
-
-    // ======== DFS =========
-    cout << "--- DFS (bat dau tu dinh 0) ---\n";
-    displayDfs(0, 1);
-    cout << "\n";
-
-    // ======== DFS bằng stack =========
-    cout << "--- DFS Stack (bat dau tu dinh 0) ---\n";
-    displayDfsStack(0, 1);
-    cout << "\n";
-
-    // ======== Kiểm tra liên thông =========
-    cout << "\n--- Kiem tra lien thong ---\n";
-    cout << (is_Connected() ? "Connected\n" : "Not connected\n");
-
-    cout << "--- So thanh phan lien thong ---\n";
-    cout << countConnectedComponents() << "\n";
-
-    // ======== Dijkstra =========
-    cout << "\n--- Dijkstra (bat dau tu dinh 0) ---\n";
-    dijkstra(0);
-
-    // ======== Floyd–Warshall =========
-    cout << "\n--- Floyd–Warshall ---\n";
-    FW(0);
-
-    // ======== Bellman–Ford =========
-    cout << "\n--- Bellman–Ford (bat dau tu dinh 0) ---\n";
-    bellmanFord(0);
-
-    cout << "\n=== KET THUC ===\n";
     return 0;
 }
