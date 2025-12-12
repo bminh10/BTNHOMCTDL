@@ -414,7 +414,7 @@ int isGraph(Graph& m) {
 		break;
 	}
 
-	if (res <= (m*(m-1)/2)) {
+	if (res <= (m.n * (m.n - 1) / 2)) {
 		return res;
 	}
 	else {
@@ -858,5 +858,6 @@ int main() {
 	del(m);
 	return 0;
 }
+
 
 
