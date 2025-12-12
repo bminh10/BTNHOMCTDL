@@ -5,8 +5,6 @@
 using namespace std;
 
 
-
-
 struct Graph {
 	//ma tran ke
 	int** matrix;
@@ -19,11 +17,11 @@ struct Graph {
 	//cach luu tru do thi
 	int type;
 	//co trong so hoac khong
-	int ts;
+	bool ts;
 	// co huong hay khong
-	int dir;
+	bool dir;
 	// mang danh dau da xoa dinh
-	int* canuse;
+	bool* canuse;
 	//ham check ho tro cho dem canh
 	int** check;
 	//mang tham
@@ -34,7 +32,7 @@ struct Graph {
 	int* label;
 };
 
-//tao rong do thi
+//========== Khởi tạo đồ thị ==========
 void init(Graph& m) {
 	m.matrix = nullptr;
 	m.list = nullptr;
@@ -44,10 +42,12 @@ void init(Graph& m) {
 	m.visited = nullptr;
 	m.parent = nullptr;
 	m.label = nullptr;
-	m.dir = 0;
+
+	m.dir = false;
+	m.ts = false;
 }
 
-//tao do thi
+//========== Tạo đồ thị ==========
 void createGraph(Graph& m) {
 	cout << "Nhap so dinh: ";
 	cin >> m.n;
@@ -80,12 +80,12 @@ void createGraph(Graph& m) {
 	default:
 		break;
 	}
-	m.canuse = new int[m.n];
+	m.canuse = new bool[m.n];
 	m.visited = new int[m.n];
 	m.parent = new int[m.n];
 	m.label = new int[m.n];
 	for (int i = 0; i < m.n; i++) {
-		m.canuse[i] = 1;
+		m.canuse[i] = true;
 		m.label[i] = 0;
 		m.parent[i] = 0;
 		m.visited[i] = 0;
@@ -102,17 +102,17 @@ void createGraph(Graph& m) {
 
 }
 
-//ham xuat do thi
+//========== Xuất đồ thị ==========
 void output(Graph m) {
 	cout << "DO THI HIEN TAI \n";
 	switch (m.type)
 	{
 	case 1: {
 		for (int i = 0; i < m.n; i++) {
-			if (m.canuse[i] == 0)continue;
+			if (!m.canuse[i]) continue;
 			cout << "Dinh " << i + 1 << ": ";
 			for (int j = 0; j < m.n; j++) {
-				if (m.canuse[j] == 1) {
+				if (m.canuse[j]) {
 					cout << m.matrix[i][j] << " ";
 				}
 			}
@@ -122,11 +122,11 @@ void output(Graph m) {
 	}
 	case 0: {
 		for (int i = 0; i < m.n; i++) {
-			if (m.canuse[i] == 0)continue;
+			if (!m.canuse[i]) continue;
 			cout << "Dinh " << i + 1 << ": ";
 			for (int j = 0; j < m.sz[i]; j++) {
 				int dinh = m.list[i][j];
-				if (m.canuse[dinh] == 1) {
+				if (m.canuse[dinh]) {
 					cout << dinh + 1 << " ";
 				}
 			}
@@ -141,10 +141,29 @@ void output(Graph m) {
 }
 
 
+//========== Kiểm tra đỉnh/cạnh ==========
+// kiểm tra đỉnh hợp lệ 
+bool existVertex(Graph& m, int u) {
+    return (u >= 0 && u < m.n);
+}
 
+// kiểm tra cạnh tồn tại 
+bool existEdge(Graph& m, int u, int v) {
+	if (!existVertex(m, u) || !existVertex(m, v)) return false;
+	if (m.type == 1) {
+		return m.matrix[u][v] != 0;
+	} else { // danh sách kề
+		for (int i = 0; i < m.sz[u]; i++) {
+			if (m.list[u][i] == v) return true;
+		}
+		return false;
+	}
+}
+
+//========== Thêm/Xóa đỉnh ==========
 //ham them dinh
 void addVertex(Graph& m, int v) {
-	if (v == 0)return;
+	if (v == 0) return;
 	int newsize = m.n + v;
 	switch (m.type)
 	{
@@ -165,9 +184,9 @@ void addVertex(Graph& m, int v) {
 			}
 		}
 		for (int i = 0; i < m.n; i++) {
-			delete[]m.matrix[i];
+			delete[] m.matrix[i];
 		}
-		delete[]m.matrix;
+		delete[] m.matrix;
 		m.matrix = newmatrix;
 
 		break;
@@ -178,14 +197,15 @@ void addVertex(Graph& m, int v) {
 			newlist[i] = nullptr;
 		}
 		for (int i = 0; i < m.n; i++) {
-			for (int j = 0; j < m.sz[i]; j++) {
-				newlist[i][j] = m.list[i][j];
+			if (m.sz[i] > 0) {
+				newlist[i] = new int[m.sz[i]];
+				for (int j = 0; j < m.sz[i]; j++) newlist[i][j] = m.list[i][j];
 			}
 		}
 		for (int i = 0; i < m.n; i++) {
-			delete[]m.list[i];
+			delete[] m.list[i];
 		}
-		delete[]m.list;
+		delete[] m.list;
 		m.list = newlist;
 
 		int* newsz = new int[newsize];
@@ -196,7 +216,7 @@ void addVertex(Graph& m, int v) {
 		for (int i = 0; i < m.n; i++) {
 			newsz[i] = m.sz[i];
 		}
-		delete[]m.sz;
+		delete[] m.sz;
 		m.sz = newsz;
 
 		break;
@@ -204,14 +224,16 @@ void addVertex(Graph& m, int v) {
 	default:
 		break;
 	}
-	int* newcanuse = new int[newsize];
+
+
+	bool* newcanuse = new bool[newsize];
 	for (int i = 0; i < newsize; i++) {
-		newcanuse[i] = 1;
+		newcanuse[i] = true;
 	}
 	for (int i = 0; i < m.n; i++) {
 		newcanuse[i] = m.canuse[i];
 	}
-	delete[]m.canuse;
+	delete[] m.canuse;
 	m.canuse = newcanuse;
 
 	int** newcheck = new int* [newsize];
@@ -229,9 +251,9 @@ void addVertex(Graph& m, int v) {
 		}
 	}
 	for (int i = 0; i < m.n; i++) {
-		delete[]m.check[i];
+		delete[] m.check[i];
 	}
-	delete[]m.check;
+	delete[] m.check;
 	m.check = newcheck;
 
 	m.n = newsize;
@@ -240,19 +262,53 @@ void addVertex(Graph& m, int v) {
 
 //ham xoa dinh
 void delVertex(Graph& m, int v) {
-	if (v < 0 && v > m.n) {
+	if (!existVertex(m, v)) {
 		cout << "Vuot pham vi\n";
 		return;
 	}
-	if (m.canuse[v] == 1) {
-		m.canuse[v] = 0;
+	if (m.canuse[v]) {
+		m.canuse[v] = false;
+		if (m.type == 1) {
+			for (int i = 0; i < m.n; i++) {
+				m.matrix[v][i] = 0;
+				m.matrix[i][v] = 0;
+			}
+		} else {
+            // xóa list của v 
+			if (m.list[v] != nullptr) {
+				delete[] m.list[v];
+				m.list[v] = nullptr;
+				m.sz[v] = 0;
+			}
+			// xóa v trong các list khác
+			for (int i = 0; i < m.n; i++) {
+				if (m.list[i] == nullptr) continue;
+				int write = 0;
+				for (int j = 0; j < m.sz[i]; j++) {
+					if (m.list[i][j] == v) continue;
+					m.list[i][write++] = m.list[i][j];
+				}
+				if (write == 0) {
+					delete[] m.list[i];
+					m.list[i] = nullptr;
+					m.sz[i] = 0;
+				} else {
+					int* tmp = new int[write];
+					for (int k = 0; k < write; k++) tmp[k] = m.list[i][k];
+					delete[] m.list[i];
+					m.list[i] = tmp;
+					m.sz[i] = write;
+				}
+			}
+			
+		}
 	}
 	else {
-		cout << "DInh nay da bi xoa \n";
+		cout << "Dinh nay da bi xoa \n";
 	}
 }
 
-//ham them 1 phan tu vao mang
+//========== Thêm phần tử động vào mảng ==========
 void push(int*& a, int& n, int x)
 {
 	if (a == nullptr) {
@@ -266,41 +322,53 @@ void push(int*& a, int& n, int x)
 		newarr[i] = a[i];
 	}
 	newarr[n] = x;
-	delete[]a;
+	delete[] a;
 	a = newarr;
 	n++;
 
 }
 
-
-//ham them canh
+//========== Thêm/Xóa cạnh ==========
+ //ham them canh
 void addEdge(Graph& m, int a, int b) {
-	if (m.canuse[a] == 0 || m.canuse[b] == 0) {
-		cout << "Khong the them canh vao do thi\n";
+	// kiểm tra đỉnh hợp lệ
+	if (!existVertex(m, a) || !existVertex(m, b)) {
+		cout << "Dinh khong hop le\n";
+		return;
+	}
+
+	// không cho self-loop
+	if (a == b) {
+		cout << "No for (u == v)\n";
+		return;
+	}
+
+	// không cho phép cạnh trùng
+	if (existEdge(m, a, b)) {
+		cout << "Canh da ton tai\n";
 		return;
 	}
 
 	switch (m.type)
 	{
 	case 1: {
-		if (m.ts == 1) {
+		if (m.ts) {
 			int ts;
 			cout << "Nhap trong so cho canh " << a + 1 << "->" << b + 1 << ": ";
 			cin >> ts;
 			m.matrix[a][b] = ts;
-			m.matrix[b][a] = ts;
+			if (!m.dir) m.matrix[b][a] = ts;
 		}
 		else {
-
 			m.matrix[a][b] = 1;
-			m.matrix[b][a] = 1;
+			if (!m.dir) m.matrix[b][a] = 1;
 		}
 
 		break;
 	}
 
 	case 0: {
-		if (m.dir == 0) {
+		if (!m.dir) {
 			push(m.list[a], m.sz[a], b);
 			push(m.list[b], m.sz[b], a);
 		}
@@ -318,7 +386,9 @@ void addEdge(Graph& m, int a, int b) {
 
 //ham ho tro xoa canh cho danh sach ke
 void pop(int*& a, int& n, int x) {
+	if (a == nullptr || n == 0) return;
 	if (n == 1) {
+		delete[] a;
 		a = nullptr;
 		n = 0;
 		return;
@@ -326,19 +396,26 @@ void pop(int*& a, int& n, int x) {
 	int* newarr = new int[n - 1];
 	int idx = 0;
 	for (int i = 0; i < n; i++) {
-		if (a[i] == x)continue;
+		if (a[i] == x) continue;
 		newarr[idx] = a[i];
 		idx++;
 	}
-	delete[]a;
+	delete[] a;
 	a = newarr;
 	n--;
 }
 
 //ham xoa canh
 void delEdge(Graph& m, int a, int b) {
-	if (m.canuse[a] == 0 || m.canuse[b] == 0) {
-		cout << "Khong the xoa canh\n";
+	// kiểm tra đỉnh hợp lệ
+	if (!existVertex(m, a) || !existVertex(m, b)) {
+		cout << "Dinh khong hop le\n";
+		return;
+	}
+
+	// không cho xóa nếu cạnh không tồn tại
+	if (!existEdge(m, a, b)) {
+		cout << "Canh khong ton tai\n";
 		return;
 	}
 
@@ -346,14 +423,13 @@ void delEdge(Graph& m, int a, int b) {
 	{
 	case 1: {
 		m.matrix[a][b] = 0;
-		m.matrix[b][a] = 0;
-
+		if (!m.dir) m.matrix[b][a] = 0;
 		break;
 	}
 
 	case 0: {
 
-		if (m.dir == 1) {
+		if (m.dir) {
 			pop(m.list[a], m.sz[a], b);
 		}
 		else {
@@ -370,11 +446,8 @@ void delEdge(Graph& m, int a, int b) {
 
 }
 
-
-
-
-
-//ham kiem tra do thi hop le + dem canh
+//========== Kiểm tra đồ thị & đếm cạnh ==========
+ //ham kiem tra do thi hop le + dem canh
 int isGraph(Graph& m) {
 	for (int i = 0; i < m.n; i++) {
 		for (int j = 0; j < m.n; j++) {
@@ -387,9 +460,9 @@ int isGraph(Graph& m) {
 	{
 	case 1: {
 		for (int i = 0; i < m.n; i++) {
-			if (m.canuse[i] == 0)continue;
+			if (!m.canuse[i]) continue;
 			for (int j = 0; j < m.n; j++) {
-				if (m.matrix[i][j] > 0 && m.check[j][i] == 0 && m.canuse[j] == 1) {
+				if (m.matrix[i][j] > 0 && m.check[j][i] == 0 && m.canuse[j]) {
 					res++;
 					m.check[i][j] = 1;
 				}
@@ -399,10 +472,10 @@ int isGraph(Graph& m) {
 	}
 	case 0: {
 		for (int i = 0; i < m.n; i++) {
-			if (m.canuse[i] == 0)continue;
+			if (!m.canuse[i]) continue;
 			for (int j = 0; j < m.sz[i]; j++) {
 				int dinh = m.list[i][j];
-				if (m.check[dinh][i] == 0 && m.canuse[dinh] == 1) {
+				if (m.check[dinh][i] == 0 && m.canuse[dinh]) {
 					res++;
 					m.check[i][dinh] = 1;
 				}
@@ -422,114 +495,131 @@ int isGraph(Graph& m) {
 	}
 }
 
-//ham ho tro tim thanh phan lien thong
-void duyet(Graph& m, int start, int label) {
-	for (int i = 0; i < m.n; i++) {
-		m.visited[i] = 0;
-	}
-	stack<int>s;
-	s.push(start);
-	while (!s.empty())
-	{
-		int r = s.top();
-		m.visited[r] = 1;
-		m.label[r] = label;
-		bool flag = false;
-		switch (m.type)
-		{
-		case 1: {
-			for (int i = 0; i < m.n; i++) {
-				if (m.canuse[i] == true && m.matrix[r][i] > 0 && m.visited[i] == 0 && m.label[i] == 0) {
-					s.push(i);
-					flag = true;
-					break;
-				}
-			}
-			break;
-		}
-		case 0: {
-			for (int i = 0; i < m.sz[r]; i++) {
-				int dinh = m.list[r][i];
-				if (m.canuse[dinh] == true && m.visited[dinh] == 0 && m.label[dinh] == 0) {
-					s.push(dinh);
-					flag = true;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-			break;
-		}
-		if (flag == false) {
-			s.pop();
-		}
-	}
+//========== Duyệt & Thành phần liên thông ==========
+ //ham ho tro tim thanh phan lien thong
+void dfs(Graph& m, int u, int label) {
+    stack<int> s;
+    s.push(u);
+
+    while (!s.empty()) {
+        int v = s.top(); s.pop();
+        if (m.visited[v]) continue;
+
+        m.visited[v] = true;
+        m.label[v] = label;
+
+        if (m.type == 1) {  // matrix
+            for (int x = 0; x < m.n; x++) {
+                if (!existVertex(m, x)) continue;
+                if (m.matrix[v][x] > 0 && !m.visited[x]) {
+                    s.push(x);
+                }
+            }
+        }
+        else { // list
+            for (int i = 0; i < m.sz[v]; i++) {
+                int x = m.list[v][i];
+                if (!existVertex(m, x)) continue;
+                if (!m.visited[x]) {
+                    s.push(x);
+                }
+            }
+        }
+    }
 }
 
-//ham dem thanh phan lien thong
-void cntTPLT(Graph& m) {
-	int label = 0;
-	for (int i = 0; i < m.n; i++) {
-		if (m.label[i] == 0) {
-			label++;
-			duyet(m, i, label);
-		}
-	}
+void countConnected(Graph& m) {
 
-	if (label == 1) {
-		cout << "Do thi lien thong \n";
-	}
-	else {
-		cout << "Do thi khong lien thong \n";
-		for (int i = 1; i <= label; i++) {
-			cout << "Thanh phan lien thong thu " << i << ": ";
-			for (int j = 0; j < m.n; j++) {
-				if (m.label[j] == i) {
-					cout << j + 1 << " ";
-				}
-			}
-			cout << endl;
-		}
-	}
+    for (int i = 0; i < m.n; i++) {
+        m.visited[i] = false;
+        m.label[i] = 0;
+    }
+
+    int count = 0;
+
+    for (int i = 0; i < m.n; i++) {
+        if (existVertex(m, i) && !m.visited[i]) {
+            count++;
+            dfs(m, i, count);   
+        }
+    }
 
 
+    if (count == 1) {
+        cout << "Do thi lien thong\n";
+        return;
+    }
+
+    cout << "Do thi khong lien thong\n";
+
+    for (int t = 1; t <= count; t++) {
+        cout << "Thanh phan lien thong thu " << t << ": ";
+        for (int j = 0; j < m.n; j++) {
+            if (existVertex(m, j) && m.label[j] == t)
+                cout << j + 1 << " ";
+        }
+        cout << endl;
+    }
 }
 
-//kiem tra chu trinh tren do thi vo huong
-bool checkCycleNoDir(Graph& m, int v, int& start, int& goal) {
+//========== Kiểm tra chu trình ==========
+ //ham kiem tra chu trinh - hoat dong cho ca do thi co huong va vo huong
+//ham kiem chu trinh tren do thi co huong 
+// 0 : dinh chua tham , 1 : dinh dang trong qua trinh tham , 2 : dinh da tham xong
+bool checkCycle(Graph& m, int v, int& start, int& goal) {
 	m.visited[v] = 1;
-	if (m.type == 1) {
+	
+	if (m.type == 1) { // Ma tran ke
 		for (int i = 0; i < m.n; i++) {
-			if (m.matrix[v][i] > 0 && m.visited[i] == 0) {
-				m.parent[i] = v;
-				if (checkCycleNoDir(m, i, start, goal) == true)return true;
-			}
-			else if (m.matrix[v][i] > 0 && i != m.parent[v]) {
-				goal = v; start = i;
-				return true;
+			if (!existVertex(m, i)) continue;
+			if (m.matrix[v][i] > 0) {
+				if (m.visited[i] == 0) {
+					m.parent[i] = v;
+					if (checkCycle(m, i, start, goal)) return true;
+				}
+				else if (m.dir && m.visited[i] == 1) {
+					// Do thi co huong
+					goal = v; start = i;
+					return true;
+				}
+				else if (!m.dir && i != m.parent[v]) {
+					// Do thi vo huong
+					goal = v; start = i;
+					return true;
+				}
 			}
 		}
 	}
-	else if(m.type==0) {
+	else if (m.type == 0) { // Danh sach ke
 		for (int i = 0; i < m.sz[v]; i++) {
 			int dinh = m.list[v][i];
+			if (!existVertex(m, dinh)) continue;
 			if (m.visited[dinh] == 0) {
 				m.parent[dinh] = v;
-				if (checkCycleNoDir(m, dinh, start, goal) == true)return true;
+				if (checkCycle(m, dinh, start, goal)) return true;
 			}
-			else if(dinh != m.parent[v]) {
+			else if (m.dir && m.visited[dinh] == 1) {
+				// Do thi co huong
+				goal = v; start = dinh;
+				return true;
+			}
+			else if (!m.dir && dinh != m.parent[v]) {
+				// Do thi vo huong
 				goal = v; start = dinh;
 				return true;
 			}
 		}
 	}
+	
+	// Co huong
+	if (m.dir) m.visited[v] = 2;
+	
 	return false;
 }
 
-//ham xuat duong di cua chu trinh
-void display(Graph m, int s, int g) {
-	stack <int>cycle;
+//========== Hiển thị chu trình ==========
+void displayCycle(Graph m, int s, int g) {
+	stack<int> cycle;
 	int idx = m.parent[g];
 	cycle.push(g + 1);
 	while (idx != s)
@@ -546,62 +636,44 @@ void display(Graph m, int s, int g) {
 	cout << s + 1 << endl;
 }
 
-//ham kiem chu trinh tren do thi co huong 
-// 0 : dinh chua tham , 1 : dinh dang trong qua trinh tham , 2 : dinh da tham xong
-bool checkCycleDir(Graph& m, int v, int& start, int& goal) {
-	m.visited[v] = 1;
-	
-	for (int i = 0; i < m.sz[v]; i++) {
-		int dinh = m.list[v][i];
-		if (m.visited[dinh] == 0) {
-			m.parent[dinh] = v;
-			if (checkCycleDir(m, dinh, start, goal) == true)return true;
-		}
-		else if (m.visited[dinh] == 1) {
-			goal = v; start = dinh;
-			return true;
-		}
-	}
-
-	m.visited[v] = 2;
-	return false;
-}
-
-//giai phong do thi
+//========== Giải phóng đồ thị ==========
+ //giai phong do thi
 void del(Graph& m) {
-	for (int i = 0; i < m.n; i++) {
-		if (m.matrix != nullptr) {
-			delete[]m.matrix[i];
+	if (m.check != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.check[i];
 		}
-		if (m.list != nullptr) {
-			delete[]m.list[i];
-		}
-		if (m.check != nullptr) {
-			delete[]m.check[i];
-		}
+		delete[] m.check;
+		m.check = nullptr;
 	}
-	delete[]m.check;
-	delete[]m.sz;
-	delete[]m.list;
-	delete[]m.matrix;
-	delete[]m.canuse;
-	delete[]m.visited;
-	delete[]m.parent;
-	delete[]m.label;
-	m.label = nullptr;
-	m.visited = nullptr;
-	m.parent = nullptr;
-	m.canuse = nullptr;
-	m.sz = nullptr;
-	m.list = nullptr;
-	m.matrix = nullptr;
-	m.check = nullptr;
-	bool res = m.sz == nullptr && m.list == nullptr && m.matrix == nullptr && m.canuse == nullptr && m.visited == nullptr && m.parent == nullptr && m.label == nullptr ? true : false;
+	if (m.matrix != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.matrix[i];
+		}
+		delete[] m.matrix;
+		m.matrix = nullptr;
+	}
+	if (m.list != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.list[i];
+		}
+		delete[] m.list;
+		m.list = nullptr;
+	}
+	delete[] m.sz; m.sz = nullptr;
+	delete[] m.canuse; m.canuse = nullptr;
+	delete[] m.visited; m.visited = nullptr;
+	delete[] m.parent; m.parent = nullptr;
+	delete[] m.label; m.label = nullptr;
+
+	bool res = (m.sz == nullptr && m.list == nullptr && m.matrix == nullptr && m.canuse == nullptr && m.visited == nullptr && m.parent == nullptr && m.label == nullptr);
 	if (res) {
 		cout << "Giai phong thanh cong \n";
 	}
 }
-// krusal vs prim
+
+//========== Kruskal & Prim ==========
+ // krusal vs prim
 struct Edge {
 	int u, v, w;
 };
@@ -720,20 +792,28 @@ void prim(Graph m, int start = 0) {
 	delete[] parent;
 }
 
-
 int main() {
 	Graph m;
 	cout << "Dung ma tran ke ( bam 1 ) / danh sach ke ( bam 0 ): ";
 	cin >> m.type;
 
+	// hỏi user xem có trọng số hay không
+	cout << "Do thi co trong so ( bam 1 ) / khong ( bam 0 ): ";
+	{
+		int tmp; cin >> tmp; m.ts = (tmp == 1);
+	}
+
 	init(m);
 	createGraph(m);
-	output(m);
 
 	if (m.type == 0) {
 		cout << "Do thi co huong ( bam 1 ) / Do thi vo huong ( bam 0 ) : ";
-		cin >> m.dir;
+		{
+			int tmp; cin >> tmp; m.dir = (tmp == 1);
+		}
 	}
+
+	output(m);
 
 	int c;
 	do
@@ -787,11 +867,13 @@ int main() {
 			break;
 		}
 		case 5:
-			kruskal(m);
+			if (m.type == 1) kruskal(m);
+			else cout << "Kruskal chi hoat dong tren ma tran ke co trong so.\n";
 			break;
 
 		case 6:
-			prim(m, 0); // chọn start = 0
+			if (m.type == 1) prim(m, 0); // chọn start = 0
+			else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
 			break;
 		default:
 			break;
@@ -806,17 +888,21 @@ int main() {
 	} while (c == 1);
 
 
-	cntTPLT(m);
+	// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
+	countConnected(m);
+
+	// kiểm tra chu trình: dùng hàm checkCycle có sẵn
 	if (m.dir == 0) {
 		for (int i = 0; i < m.n; i++) {
 			m.visited[i] = 0;
 			m.parent[i] = -1;
 		}
-		int s, g;
+		int s = -1, g = -1;
 		bool res = false;
 		for (int i = 0; i < m.n; i++) {
 			if (m.visited[i] == 0) {
-				res = checkCycleNoDir(m, i, s, g);
+				// dùng hàm checkCycle đã có (dùng cho cả có hướng & vô hướng)
+				res = checkCycle(m, i, s, g);
 			}
 			if (res == true) {
 				break;
@@ -824,7 +910,7 @@ int main() {
 		}
 		if (res) {
 			cout << "Co chu trinh \n";
-			display(m, s, g);
+			displayCycle(m, s, g);
 		}
 		else {
 			cout << "Khong co chu trinh \n";
@@ -836,11 +922,11 @@ int main() {
 			m.visited[i] = 0;
 			m.parent[i] = -1;
 		}
-		int s, g;
+		int s = -1, g = -1;
 		bool res = false;
 		for (int i = 0; i < m.n; i++) {
 			if (m.visited[i] == 0) {
-				res = checkCycleDir(m, i, s, g);
+				res = checkCycle(m, i, s, g);
 			}
 			if (res == true) {
 				break;
@@ -848,7 +934,7 @@ int main() {
 		}
 		if (res) {
 			cout << "Co chu trinh \n";
-			display(m, s, g);
+			displayCycle(m, s, g);
 		}
 		else {
 			cout << "Khong co chu trinh \n";
@@ -858,6 +944,3 @@ int main() {
 	del(m);
 	return 0;
 }
-
-
-
