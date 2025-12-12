@@ -498,58 +498,30 @@ void cntTPLT(Graph& m) {
 
 //kiem tra chu trinh tren do thi vo huong
 bool checkCycleNoDir(Graph& m, int v, int& start, int& goal) {
-	for (int i = 0; i < m.n; i++) {
-		m.visited[i] = 0;
-		m.parent[i] = 0;
+	m.visited[v] = 1;
+	if (m.type == 1) {
+		for (int i = 0; i < m.n; i++) {
+			if (m.matrix[v][i] > 0 && m.visited[i] == 0) {
+				m.parent[i] = v;
+				if (checkCycleNoDir(m, i, start, goal) == true)return true;
+			}
+			else if (m.matrix[v][i] > 0 && i != m.parent[v]) {
+				goal = v; start = i;
+				return true;
+			}
+		}
 	}
-	stack<int>s;
-	s.push(v);
-	while (!s.empty())
-	{
-		int r = s.top();
-		m.visited[r] = 1;
-		bool flag = false;
-		switch (m.type)
-		{
-
-		case 1: {
-			for (int i = 0; i < m.n; i++) {
-				if (m.canuse[i] == true && m.matrix[r][i] > 0 && m.visited[i] == 0) {
-					s.push(i);
-					flag = true;
-					m.parent[i] = r;
-					break;
-				}
-				else if (m.matrix[r][i] > 0 && i != m.parent[r]) {
-					start = i;
-					goal = r;
-					return true;
-				}
+	else if(m.type==0) {
+		for (int i = 0; i < m.sz[v]; i++) {
+			int dinh = m.list[v][i];
+			if (m.visited[dinh] == 0) {
+				m.parent[dinh] = v;
+				if (checkCycleNoDir(m, dinh, start, goal) == true)return true;
 			}
-			break;
-		}
-		case 0: {
-			for (int i = 0; i < m.sz[r]; i++) {
-				int dinh = m.list[r][i];
-				if (m.canuse[dinh] == true && m.visited[dinh] == 0) {
-					s.push(dinh);
-					flag = true;
-					m.parent[dinh] = r;
-					break;
-				}
-				else if (dinh != m.parent[r]) {
-					start = dinh;
-					goal = r;
-					return true;
-				}
+			else if(dinh != m.parent[v]) {
+				goal = v; start = dinh;
+				return true;
 			}
-			break;
-		}
-		default:
-			break;
-		}
-		if (flag == false) {
-			s.pop();
 		}
 	}
 	return false;
@@ -575,36 +547,23 @@ void display(Graph m, int s, int g) {
 }
 
 //ham kiem chu trinh tren do thi co huong 
+// 0 : dinh chua tham , 1 : dinh dang trong qua trinh tham , 2 : dinh da tham xong
 bool checkCycleDir(Graph& m, int v, int& start, int& goal) {
-
-	stack<int>s;
-	s.push(v);
-	while (!s.empty())
-	{
-		int r = s.top();
-		m.visited[r] = 1;
-		bool flag = false;
-
-		for (int i = 0; i < m.sz[r]; i++) {
-			int dinh = m.list[r][i];
-			if (m.canuse[dinh] == true && m.visited[dinh] == 0) {
-				s.push(dinh);
-				flag = true;
-				m.parent[dinh] = r;
-				break;
-			}
-			else if (m.visited[dinh] == 1) {
-				start = dinh;
-				goal = r;
-				return true;
-			}
+	m.visited[v] = 1;
+	
+	for (int i = 0; i < m.sz[v]; i++) {
+		int dinh = m.list[v][i];
+		if (m.visited[dinh] == 0) {
+			m.parent[dinh] = v;
+			if (checkCycleDir(m, dinh, start, goal) == true)return true;
 		}
-
-		if (flag == false) {
-			m.visited[r] = 2;
-			s.pop();
+		else if (m.visited[dinh] == 1) {
+			goal = v; start = dinh;
+			return true;
 		}
 	}
+
+	m.visited[v] = 2;
 	return false;
 }
 
@@ -851,12 +810,17 @@ int main() {
 	if (m.dir == 0) {
 		for (int i = 0; i < m.n; i++) {
 			m.visited[i] = 0;
-			m.parent[i] = 0;
+			m.parent[i] = -1;
 		}
 		int s, g;
 		bool res = false;
 		for (int i = 0; i < m.n; i++) {
-			res = checkCycleNoDir(m, i, s, g);
+			if (m.visited[i] == 0) {
+				res = checkCycleNoDir(m, i, s, g);
+			}
+			if (res == true) {
+				break;
+			}
 		}
 		if (res) {
 			cout << "Co chu trinh \n";
@@ -870,12 +834,17 @@ int main() {
 	else {
 		for (int i = 0; i < m.n; i++) {
 			m.visited[i] = 0;
-			m.parent[i] = 0;
+			m.parent[i] = -1;
 		}
 		int s, g;
 		bool res = false;
 		for (int i = 0; i < m.n; i++) {
-			res = checkCycleDir(m, i, s, g);
+			if (m.visited[i] == 0) {
+				res = checkCycleDir(m, i, s, g);
+			}
+			if (res == true) {
+				break;
+			}
 		}
 		if (res) {
 			cout << "Co chu trinh \n";
@@ -889,4 +858,5 @@ int main() {
 	del(m);
 	return 0;
 }
+
 
