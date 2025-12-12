@@ -372,24 +372,7 @@ void delEdge(Graph& m, int a, int b) {
 
 
 
-//ham ho tro kiem tra do thi hop le
-int calMaxCanh(int n) {
-	if (n == 1) {
-		return 0;
-	}
-	if (n == 2) {
-		return 1;
-	}
-	if (n == 3) {
-		return 3;
-	}
-	n--;
-	int res = 1;
-	for (int i = 1; i <= n; i++) {
-		res = res * i;
-	}
-	return res;
-}
+
 
 //ham kiem tra do thi hop le + dem canh
 int isGraph(Graph& m) {
@@ -431,7 +414,7 @@ int isGraph(Graph& m) {
 		break;
 	}
 
-	if (res <= calMaxCanh(m.n)) {
+	if (res <= (m*(m-1)/2)) {
 		return res;
 	}
 	else {
@@ -906,3 +889,4 @@ int main() {
 	del(m);
 	return 0;
 }
+
