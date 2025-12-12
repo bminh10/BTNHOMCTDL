@@ -263,6 +263,17 @@ void radixSort(SinhVien*& a, int n, int chon1, int chon2) {
 
 }
 
+ll divide(ll x)
+{
+	ll sum = 1;
+	while (x != 0)
+	{
+		sum *= 10;
+		x /= 10;
+	}
+	return sum / 10;
+}
+
 void bucketSort(SinhVien*& a, int n, int chon1, int chon2) {
 	SinhVien** bucket = new SinhVien * [n];
 	int* sz = new int[n];
@@ -271,19 +282,25 @@ void bucketSort(SinhVien*& a, int n, int chon1, int chon2) {
 		sz[i] = 0;
 	}
 
+	ll m = findMax(a, n, chon1);
+
+	ll div = divide(m);
+	if (div == 0) div = 1;
 	for (int i = 0; i < n; i++) {
-		int idx = 0;
-		push(bucket[idx], sz[idx], a[i]);
+		ll bucketI = getVal(a[i], chon1) / div;
+		if (bucketI >= n) bucketI = n - 1;
+
+		push(bucket[bucketI], sz[bucketI], a[i]);
 	}
 
 	for (int i = 0; i < n; i++) {
-		if (bucket[i] == nullptr)continue;
-		radixSort(bucket[i], sz[i], chon1, chon2);
+		if (sz[i] <= 1) continue;
+		radixSort(bucket[i], sz[i], chon1, 1);
 	}
 
 
 	int idx = 0;
-	/*if (chon2 == 1) {*/
+
 	for (int i = 0; i < n; i++) {
 		if (bucket[i] == nullptr)continue;
 		for (int j = 0; j < sz[i]; j++) {
@@ -291,16 +308,21 @@ void bucketSort(SinhVien*& a, int n, int chon1, int chon2) {
 			idx++;
 		}
 	}
-	/*}
-	else  {
-		for (int i = n - 1; i >= 0; i--) {
-			if (bucket[i] == nullptr)continue;
-			for (int j = sz[i]-1; j >= 0 ; j--) {
-				a[idx] = bucket[i][j];
-				idx++;
-			}
+	if (chon2 == 2)
+	{
+		int l = 0; int r = n - 1;
+		while (l < r)
+		{
+			swap(a[l], a[r]);
+			l++;
+			r--;
 		}
-	}*/
+	}
+	for (int i = 0; i < n; i++) {
+		delete[] bucket[i];
+	}
+	delete[] bucket;
+	delete[] sz;
 
 }
 
@@ -471,3 +493,4 @@ int main() {
 	return 0;
 
 }
+
