@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <stack>
 #include <queue>
 using namespace std;
+
+#define INF 1000
 
 
 struct Graph {
@@ -15,13 +16,11 @@ struct Graph {
 	int* sz;
 	// so dinh
 	int n;
-	//cách tạo đồ thị
-	int option;
 	//cach luu tru do thi
 	int type;
-	//co trong so hoac khong
+	//co trong so hoac khong have : true
 	bool ts;
-	// co huong hay khong
+	// co huong hay khong have : true
 	bool dir;
 	// mang danh dau da xoa dinh
 	bool* canuse;
@@ -50,45 +49,69 @@ void init(Graph& m) {
 	m.ts = false;
 }
 
-
-//tạo đồ thị bằng file
-void readFile(Graph& m, string s) {
-	ifstream fin(s);
-	fin >> m.n;
-	m.matrix = new int* [m.n];
-	for (int i = 0; i < m.n; i++) {
-		m.matrix[i] = new int[m.n];
-	}
-	for (int i = 0; i < m.n; i++) {
-		for (int j = 0; j < m.n; j++) {
-			m.matrix[i][j] = 0;
-		}
-	}
-
-	for (int i = 0; i < m.n; i++) {
-		for (int j = 0; j < m.n; j++) {
-			int x;
-			fin >> x;
-			m.matrix[i][j] = x;
-		}
-	}
-	fin.close();
-
-}
-
 //========== Tạo đồ thị ==========
-void createGraph(Graph& m) {
-	switch (m.option)
-{
-case 1: {
-	readFile(m, "matrix.txt");
-	//Ma trận kề có trọng số và vô hướng
-	m.type = 1;
-	m.ts = 1;
-	m.dir = 0;
-	break;
+//Nhap ma tran tu file
+void readMatrixFromFile(Graph& m, const char* filename){
+    ifstream f(filename);
+    if(!f){
+        cout << "Khong mo duoc file\n";
+        return;
+    }
+
+    f >> m.n;
+
+    // cap phat
+    m.matrix = new int*[m.n];
+    for(int i = 0; i < m.n; i++){
+        m.matrix[i] = new int[m.n];
+    }
+
+    // đọc ma trận
+    for(int i = 0; i < m.n; i++){
+        for(int j = 0; j < m.n; j++){
+            f >> m.matrix[i][j];
+        }
+    }
+
+    // mặc định
+    m.type = 1;      // ma tran ke
+    m.ts   = true;   // co trong so
+	m.dir = false;
+	for(int i = 0; i < m.n; i++){
+		for(int j = i; j < m.n; j++){
+			if(m.matrix[i][j] != m.matrix[j][i]){
+				m.dir = true;
+				break;
+			}
+		}
+		if(m.dir) break;
+	}
+
+    // cap phat phu
+    m.visited = new int[m.n];
+    m.parent  = new int[m.n];
+    m.canuse  = new bool[m.n];
+
+    for(int i = 0; i < m.n; i++){
+        m.visited[i] = false;
+        m.parent[i]  = -1;
+        m.canuse[i]  = 1;
+    }
+
+	// cấp phát check
+	m.check = new int*[m.n];
+	for(int i = 0; i < m.n; i++){
+		m.check[i] = new int[m.n];
+		for(int j = 0; j < m.n; j++)
+			m.check[i][j] = 0;
+	}
+
+
+    f.close();
 }
-case 2: {
+
+//tao do thi
+void createGraph(Graph& m) {
 	cout << "Nhap so dinh: ";
 	cin >> m.n;
 	switch (m.type)
@@ -120,30 +143,25 @@ case 2: {
 	default:
 		break;
 	}
-}
-default:
-	break;
-}
-
-m.canuse = new bool[m.n];
-m.visited = new int[m.n];
-m.parent = new int[m.n];
-m.label = new int[m.n];
-for (int i = 0; i < m.n; i++) {
-	m.canuse[i] = true;
-	m.label[i] = 0;
-	m.parent[i] = 0;
-	m.visited[i] = 0;
-}
-m.check = new int* [m.n];
-for (int i = 0; i < m.n; i++) {
-	m.check[i] = new int[m.n];
-}
-for (int i = 0; i < m.n; i++) {
-	for (int j = 0; j < m.n; j++) {
-		m.check[i][j] = 0;
+	m.canuse = new bool[m.n];
+	m.visited = new int[m.n];
+	m.parent = new int[m.n];
+	m.label = new int[m.n];
+	for (int i = 0; i < m.n; i++) {
+		m.canuse[i] = true;
+		m.label[i] = 0;
+		m.parent[i] = 0;
+		m.visited[i] = 0;
 	}
-}
+	m.check = new int* [m.n];
+	for (int i = 0; i < m.n; i++) {
+		m.check[i] = new int[m.n];
+	}
+	for (int i = 0; i < m.n; i++) {
+		for (int j = 0; j < m.n; j++) {
+			m.check[i][j] = 0;
+		}
+	}
 
 }
 
@@ -681,41 +699,205 @@ void displayCycle(Graph m, int s, int g) {
 	cout << s + 1 << endl;
 }
 
-//========== Giải phóng đồ thị ==========
- //giai phong do thi
-void del(Graph& m) {
-	if (m.check != nullptr) {
-		for (int i = 0; i < m.n; i++) {
-			delete[] m.check[i];
-		}
-		delete[] m.check;
-		m.check = nullptr;
-	}
-	if (m.matrix != nullptr) {
-		for (int i = 0; i < m.n; i++) {
-			delete[] m.matrix[i];
-		}
-		delete[] m.matrix;
-		m.matrix = nullptr;
-	}
-	if (m.list != nullptr) {
-		for (int i = 0; i < m.n; i++) {
-			delete[] m.list[i];
-		}
-		delete[] m.list;
-		m.list = nullptr;
-	}
-	delete[] m.sz; m.sz = nullptr;
-	delete[] m.canuse; m.canuse = nullptr;
-	delete[] m.visited; m.visited = nullptr;
-	delete[] m.parent; m.parent = nullptr;
-	delete[] m.label; m.label = nullptr;
+//========== Thuật toán đường đi ngắn nhất ==========
+void printRes(Graph& m, int start, int end, int* d){
+    if (end == -1){
+        cout <<start + 1<<endl;
+        for(int i = 0; i < m.n; i++){
+            cout << start + 1 << " -> " << i + 1 << endl;
 
-	bool res = (m.sz == nullptr && m.list == nullptr && m.matrix == nullptr && m.canuse == nullptr && m.visited == nullptr && m.parent == nullptr && m.label == nullptr);
-	if (res) {
-		cout << "Giai phong thanh cong \n";
-	}
+            if (d[i] == INF){
+                cout << "Khong co duong di\n\n";
+                continue;
+            }
+
+            cout << "Tong do dai = " << d[i] << endl;
+            cout << "Duong di: ";
+
+            stack<int> st;
+            for(int v = i; v != -1; v = m.parent[v])
+                st.push(v + 1);
+
+            while(!st.empty()){
+                cout << st.top();
+                st.pop();
+                if(!st.empty()) cout << " -> ";
+            }
+            cout << "\n";
+        }
+        return;
+    }
+
+    cout << start + 1 << " -> " << end + 1 << endl;
+    if (d[end] == INF){
+        cout << "Khong co duong di\n";
+        return;
+    }
+
+    cout << "Tong do dai = " << d[end] << endl;
+    cout << "Duong di: ";
+
+    stack<int> st;
+    for(int v = end; v != -1; v = m.parent[v])
+        st.push(v + 1);
+
+    while(!st.empty()){
+        cout << st.top();
+        st.pop();
+        if(!st.empty()) cout << " -> ";
+    }
+    cout << endl;
 }
+
+//1. Dijkstra
+void dijkstra(Graph& m, int start, int end){
+    if (!m.ts){
+        cout << "Do thi khong co trong so\n";
+        return;
+    }
+
+    int* d = new int[m.n];
+    for(int i = 0; i < m.n; i++){
+        d[i] = INF;
+        m.visited[i] = false;
+        m.parent[i] = -1;
+    }
+
+    d[start] = 0;
+
+    for(int i = 0; i < m.n; i++){
+        int u = -1, minD = INF;
+        for(int j = 0; j < m.n; j++)
+            if(!m.visited[j] && d[j] < minD){
+                minD = d[j];
+                u = j;
+            }
+
+        if (u == -1) break;
+        m.visited[u] = true;
+
+        for(int v = 0; v < m.n; v++){
+            if(m.matrix[u][v] > 0 &&
+               !m.visited[v] &&
+               d[u] + m.matrix[u][v] < d[v]){
+                d[v] = d[u] + m.matrix[u][v];
+                m.parent[v] = u;
+            }
+        }
+    }
+
+    cout << "===== DIJKSTRA =====\n";
+    printRes(m, start, end, d);
+
+    delete[] d;
+}
+
+//2. Bellman Ford
+void bellmanFord(Graph& m, int start, int end){
+    if (!m.ts){
+        cout << "Do thi khong co trong so\n";
+        return;
+    }
+
+    int* d = new int[m.n];
+    for(int i = 0; i < m.n; i++){
+        d[i] = INF;
+        m.parent[i] = -1;
+    }
+
+    d[start] = 0;
+
+    for(int k = 0; k < m.n - 1; k++){
+        for(int u = 0; u < m.n; u++){
+            if(d[u] == INF) continue;
+            for(int v = 0; v < m.n; v++){
+                if(m.matrix[u][v] > 0 &&
+                   d[u] + m.matrix[u][v] < d[v]){
+                    d[v] = d[u] + m.matrix[u][v];
+                    m.parent[v] = u;
+                }
+            }
+        }
+    }
+
+    // check chu trinh am
+    for(int u = 0; u < m.n; u++){
+        if(d[u] == INF) continue;
+        for(int v = 0; v < m.n; v++){
+            if(m.matrix[u][v] > 0 &&
+               d[u] + m.matrix[u][v] < d[v]){
+                cout << "Chu trinh am\n";
+                delete[] d;
+                return;
+            }
+        }
+    }
+
+    cout << "===== BELLMAN FORD =====\n";
+    printRes(m, start, end, d);
+
+    delete[] d;
+}
+
+//1. Floyd Warshall
+void floydWarshall(Graph& m, int start, int end){
+    if (!m.ts){
+        cout << "Do thi khong co trong so\n";
+        return;
+    }
+
+    if (end == -1){
+        cout << "Floyd Warshall chi ho tro 1 cap (start -> end)\n";
+        return;
+    }
+
+    int d[100][100], next[100][100];
+
+    for(int i = 0; i < m.n; i++){
+        for(int j = 0; j < m.n; j++){
+            if(i == j){
+                d[i][j] = 0;
+                next[i][j] = j;
+            }
+            else if(m.matrix[i][j] > 0){
+                d[i][j] = m.matrix[i][j];
+                next[i][j] = j;
+            }
+            else{
+                d[i][j] = INF;
+                next[i][j] = -1;
+            }
+        }
+    }
+
+    for(int k = 0; k < m.n; k++)
+        for(int i = 0; i < m.n; i++)
+            for(int j = 0; j < m.n; j++)
+                if(d[i][k] != INF && d[k][j] != INF &&
+                   d[i][k] + d[k][j] < d[i][j]){
+                    d[i][j] = d[i][k] + d[k][j];
+                    next[i][j] = next[i][k];
+                }
+
+    cout << "===== FLOYD WARSHALL =====\n";
+    cout << start + 1 << " -> " << end + 1 << endl;
+
+    if(d[start][end] == INF){
+        cout << "Khong co duong di\n";
+        return;
+    }
+
+    cout << "Tong do dai = " << d[start][end] << endl;
+    cout << "Duong di: ";
+
+    int u = start;
+    while(u != end){
+        cout << u + 1 << " -> ";
+        u = next[u][end];
+    }
+    cout << end + 1 << endl;
+}
+
 
 //========== Kruskal & Prim ==========
  // krusal vs prim
@@ -738,8 +920,7 @@ void kruskal(Graph m) {
 			if (m.matrix[i][j] > 0) cnt++;
 		}
 	}
-	//Biến lưu tổng trọng số
-	int d = 0;
+
 	// Tạo danh sách cạnh
 	Edge* edges = new Edge[cnt];
 	int idx = 0;
@@ -779,13 +960,12 @@ void kruskal(Graph m) {
 		if (ru != rv) {
 			cout << edges[i].u + 1 << " - " << edges[i].v + 1
 				<< "  (w=" << edges[i].w << ")\n";
-			d += edges[i].w;
 			parent[rv] = ru;
 			pick++;
 			if (pick == m.n - 1) break;
 		}
 	}
-	cout << "Tong trong so : " << d << endl;
+
 	delete[] edges;
 	delete[] parent;
 }
@@ -825,52 +1005,88 @@ void prim(Graph m, int start = 0) {
 			}
 		}
 	}
-	// Biến lưu tổng trọng  số
-	int d = 0;
+
 	cout << "Cay khung nho nhat (Prim):\n";
 	for (int i = 0; i < m.n; i++) {
 		if (parent[i] != -1) {
 			cout << parent[i] + 1 << " - " << i + 1
 				<< "  (w=" << m.matrix[i][parent[i]] << ")\n";
-			d += m.matrix[i][parent[i]];
 		}
 	}
-	cout << "Tong trong so : " << d << endl;
+
 	delete[] visited;
 	delete[] dist;
 	delete[] parent;
 }
 
-int main() {
-	Graph m;
-	init(m);
-	cout << "Tao do thi bang file ( bam 1 ) / tao do thi thu cong ( bam 2 ): ";
-	cin >> m.option;
-
-	if (m.option == 2) {
-		cout << "Dung ma tran ke ( bam 1 ) / danh sach ke ( bam 0 ): ";
-		cin >> m.type;
-		// hỏi user xem có trọng số hay không
-		if (m.type != 0) {
-			cout << "Do thi co trong so ( bam 1 ) / khong ( bam 0 ): ";
-			{
-				int tmp; cin >> tmp;
-				if (tmp == 1) m.ts = true;
-				else m.ts = false;
-			}
+//========== Giải phóng đồ thị ==========
+ //giai phong do thi
+void del(Graph& m) {
+	if (m.check != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.check[i];
 		}
-		if (m.type == 0) {
-			cout << "Do thi co huong ( bam 1 ) / Do thi vo huong ( bam 0 ) : ";
-			{
-				int tmp; cin >> tmp;
-				if (tmp == 1) m.dir = true;
-				else m.dir = false;
-			}
-		}
+		delete[] m.check;
+		m.check = nullptr;
 	}
+	if (m.matrix != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.matrix[i];
+		}
+		delete[] m.matrix;
+		m.matrix = nullptr;
+	}
+	if (m.list != nullptr) {
+		for (int i = 0; i < m.n; i++) {
+			delete[] m.list[i];
+		}
+		delete[] m.list;
+		m.list = nullptr;
+	}
+	delete[] m.sz; m.sz = nullptr;
+	delete[] m.canuse; m.canuse = nullptr;
+	delete[] m.visited; m.visited = nullptr;
+	delete[] m.parent; m.parent = nullptr;
+	delete[] m.label; m.label = nullptr;
 
-	createGraph(m);
-	output(m);
+	bool res = (m.sz == nullptr && m.list == nullptr && m.matrix == nullptr && m.canuse == nullptr && m.visited == nullptr && m.parent == nullptr && m.label == nullptr);
+	if (res) {
+		cout << "Giai phong thanh cong \n";
+	}
+}
+
+int main() {
+       Graph m;
+
+    // ===== CHON CACH NHAP DO THI =====
+    cout << "Nhap do thi tu FILE (1) / Nhap tay (0): ";
+    int choice;	cin >> choice;
+
+    if (choice == 1) {
+        readMatrixFromFile(m,"D:/1-Major CS/.vscode/Theory/graph.txt");
+    }
+    else {
+		
+        // ===== NHAP TAY =====
+		init(m);  
+
+        cout << "Dung ma tran ke (1) / danh sach ke (0): ";
+        cin >> m.type;
+
+        cout << "Do thi co trong so (1) / khong (0): ";
+        int tmp; 
+        cin >> tmp;
+        m.type = (tmp == 1);
+
+        cout << "Do thi co trong so (1) / khong (0): ";
+		cin >> tmp;
+		m.ts = (tmp == 1);
+
+        createGraph(m);   
+        cout << "=== DO THI NHAP TAY ===\n";
+    }
+
+    output(m);
 
 	int c;
 	do
@@ -882,6 +1098,10 @@ int main() {
 		cout << "4. xoa canh\n";
 		cout << "5. krusal\n";
 		cout << "6. prim\n";
+		cout << "7. Dijkstra\n";
+		cout << "8. Bellman Ford\n";
+		cout << "9. Floyd Warshall\n";
+
 		int chose;
 		cin >> chose;
 
@@ -932,6 +1152,48 @@ int main() {
 			if (m.type == 1) prim(m, 0); // chọn start = 0
 			else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
 			break;
+			
+		case 7: {
+			int s, t;
+			cout << "Nhap dinh bat dau: ";
+			cin >> s;
+			s--;
+
+			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+			cin >> t;
+			if(t != -1) t--;
+
+			dijkstra(m, s, t);
+			break;
+		}
+
+		case 8: {
+			int s, t;
+			cout << "Nhap dinh bat dau: ";
+			cin >> s;
+			s--;
+
+			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+			cin >> t;
+			if(t != -1) t--;
+
+			bellmanFord(m, s, t);
+			break;
+		}
+
+		case 9: {
+			int s, t;
+			cout << "Nhap dinh bat dau: ";
+			cin >> s;
+			s--;
+
+			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+			cin >> t;
+			if(t != -1) t--;
+
+			floydWarshall(m, s, t);
+			break;
+		}
 		default:
 			break;
 		}
@@ -1001,5 +1263,4 @@ int main() {
 	del(m);
 	return 0;
 }
-
 
