@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <stack>
 #include <queue>
 using namespace std;
@@ -80,7 +81,7 @@ void createGraph(Graph& m) {
 	switch (m.option)
 {
 case 1: {
-	readFile(m, "graph.txt");
+	readFile(m, "matrix.txt");
 	//Ma trận kề có trọng số và vô hướng
 	m.type = 1;
 	m.ts = 1;
@@ -1000,4 +1001,5 @@ int main() {
 	del(m);
 	return 0;
 }
+
 
