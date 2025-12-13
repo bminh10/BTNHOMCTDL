@@ -796,20 +796,24 @@ int main() {
 	Graph m;
 	cout << "Dung ma tran ke ( bam 1 ) / danh sach ke ( bam 0 ): ";
 	cin >> m.type;
+	init(m);
 
 	// hỏi user xem có trọng số hay không
 	cout << "Do thi co trong so ( bam 1 ) / khong ( bam 0 ): ";
 	{
-		int tmp; cin >> tmp; m.ts = (tmp == 1);
+		int tmp; cin>>tmp;
+		if(tmp == 1) m.ts = true;
+		else m.ts = false; 
 	}
 
-	init(m);
 	createGraph(m);
 
 	if (m.type == 0) {
 		cout << "Do thi co huong ( bam 1 ) / Do thi vo huong ( bam 0 ) : ";
 		{
-			int tmp; cin >> tmp; m.dir = (tmp == 1);
+			int tmp; cin >> tmp;
+			if(tmp == 1) m.dir = true;
+			else m.dir = false;
 		}
 	}
 
