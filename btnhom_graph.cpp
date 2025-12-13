@@ -14,6 +14,8 @@ struct Graph {
 	int* sz;
 	// so dinh
 	int n;
+	//cách tạo đồ thị
+	int option;
 	//cach luu tru do thi
 	int type;
 	//co trong so hoac khong
@@ -47,8 +49,45 @@ void init(Graph& m) {
 	m.ts = false;
 }
 
+
+//tạo đồ thị bằng file
+void readFile(Graph& m, string s) {
+	ifstream fin(s);
+	fin >> m.n;
+	m.matrix = new int* [m.n];
+	for (int i = 0; i < m.n; i++) {
+		m.matrix[i] = new int[m.n];
+	}
+	for (int i = 0; i < m.n; i++) {
+		for (int j = 0; j < m.n; j++) {
+			m.matrix[i][j] = 0;
+		}
+	}
+
+	for (int i = 0; i < m.n; i++) {
+		for (int j = 0; j < m.n; j++) {
+			int x;
+			fin >> x;
+			m.matrix[i][j] = x;
+		}
+	}
+	fin.close();
+
+}
+
 //========== Tạo đồ thị ==========
 void createGraph(Graph& m) {
+	switch (m.option)
+{
+case 1: {
+	readFile(m, "graph.txt");
+	//Ma trận kề có trọng số và vô hướng
+	m.type = 1;
+	m.ts = 1;
+	m.dir = 0;
+	break;
+}
+case 2: {
 	cout << "Nhap so dinh: ";
 	cin >> m.n;
 	switch (m.type)
@@ -80,25 +119,30 @@ void createGraph(Graph& m) {
 	default:
 		break;
 	}
-	m.canuse = new bool[m.n];
-	m.visited = new int[m.n];
-	m.parent = new int[m.n];
-	m.label = new int[m.n];
-	for (int i = 0; i < m.n; i++) {
-		m.canuse[i] = true;
-		m.label[i] = 0;
-		m.parent[i] = 0;
-		m.visited[i] = 0;
+}
+default:
+	break;
+}
+
+m.canuse = new bool[m.n];
+m.visited = new int[m.n];
+m.parent = new int[m.n];
+m.label = new int[m.n];
+for (int i = 0; i < m.n; i++) {
+	m.canuse[i] = true;
+	m.label[i] = 0;
+	m.parent[i] = 0;
+	m.visited[i] = 0;
+}
+m.check = new int* [m.n];
+for (int i = 0; i < m.n; i++) {
+	m.check[i] = new int[m.n];
+}
+for (int i = 0; i < m.n; i++) {
+	for (int j = 0; j < m.n; j++) {
+		m.check[i][j] = 0;
 	}
-	m.check = new int* [m.n];
-	for (int i = 0; i < m.n; i++) {
-		m.check[i] = new int[m.n];
-	}
-	for (int i = 0; i < m.n; i++) {
-		for (int j = 0; j < m.n; j++) {
-			m.check[i][j] = 0;
-		}
-	}
+}
 
 }
 
@@ -693,7 +737,8 @@ void kruskal(Graph m) {
 			if (m.matrix[i][j] > 0) cnt++;
 		}
 	}
-
+	//Biến lưu tổng trọng số
+	int d = 0;
 	// Tạo danh sách cạnh
 	Edge* edges = new Edge[cnt];
 	int idx = 0;
@@ -733,12 +778,13 @@ void kruskal(Graph m) {
 		if (ru != rv) {
 			cout << edges[i].u + 1 << " - " << edges[i].v + 1
 				<< "  (w=" << edges[i].w << ")\n";
+			d += edges[i].w;
 			parent[rv] = ru;
 			pick++;
 			if (pick == m.n - 1) break;
 		}
 	}
-
+	cout << "Tong trong so : " << d << endl;
 	delete[] edges;
 	delete[] parent;
 }
@@ -778,15 +824,17 @@ void prim(Graph m, int start = 0) {
 			}
 		}
 	}
-
+	// Biến lưu tổng trọng  số
+	int d = 0;
 	cout << "Cay khung nho nhat (Prim):\n";
 	for (int i = 0; i < m.n; i++) {
 		if (parent[i] != -1) {
 			cout << parent[i] + 1 << " - " << i + 1
 				<< "  (w=" << m.matrix[i][parent[i]] << ")\n";
+			d += m.matrix[i][parent[i]];
 		}
 	}
-
+	cout << "Tong trong so : " << d << endl;
 	delete[] visited;
 	delete[] dist;
 	delete[] parent;
@@ -794,29 +842,33 @@ void prim(Graph m, int start = 0) {
 
 int main() {
 	Graph m;
-	cout << "Dung ma tran ke ( bam 1 ) / danh sach ke ( bam 0 ): ";
-	cin >> m.type;
 	init(m);
+	cout << "Tao do thi bang file ( bam 1 ) / tao do thi thu cong ( bam 2 ): ";
+	cin >> m.option;
 
-	// hỏi user xem có trọng số hay không
-	cout << "Do thi co trong so ( bam 1 ) / khong ( bam 0 ): ";
-	{
-		int tmp; cin>>tmp;
-		if(tmp == 1) m.ts = true;
-		else m.ts = false; 
-	}
-
-	createGraph(m);
-
-	if (m.type == 0) {
-		cout << "Do thi co huong ( bam 1 ) / Do thi vo huong ( bam 0 ) : ";
-		{
-			int tmp; cin >> tmp;
-			if(tmp == 1) m.dir = true;
-			else m.dir = false;
+	if (m.option == 2) {
+		cout << "Dung ma tran ke ( bam 1 ) / danh sach ke ( bam 0 ): ";
+		cin >> m.type;
+		// hỏi user xem có trọng số hay không
+		if (m.type != 0) {
+			cout << "Do thi co trong so ( bam 1 ) / khong ( bam 0 ): ";
+			{
+				int tmp; cin >> tmp;
+				if (tmp == 1) m.ts = true;
+				else m.ts = false;
+			}
+		}
+		if (m.type == 0) {
+			cout << "Do thi co huong ( bam 1 ) / Do thi vo huong ( bam 0 ) : ";
+			{
+				int tmp; cin >> tmp;
+				if (tmp == 1) m.dir = true;
+				else m.dir = false;
+			}
 		}
 	}
 
+	createGraph(m);
 	output(m);
 
 	int c;
@@ -948,3 +1000,4 @@ int main() {
 	del(m);
 	return 0;
 }
+
