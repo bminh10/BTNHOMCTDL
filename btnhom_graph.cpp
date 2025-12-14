@@ -1325,7 +1325,7 @@ int main() {
 		cout << "4. xoa canh\n";
 		cout << "5. bfs\n";
 		cout << "6. dfs\n";
-		if (m.type != 0) {
+		if (m.type != 0 && m.ts == true) {
 			cout << "7. krusal\n";
 			cout << "8. prim\n";
 			cout << "9. Dijkstra\n";
@@ -1390,7 +1390,7 @@ int main() {
 			break;
 		}
 
-			  if (m.type != 0) {
+			  if (m.type != 0 && m.ts==true) {
 		case 6: {
 			int v;
 			cout << "Nhap dinh bat dau: ";
@@ -1571,3 +1571,4 @@ int main() {
 	del(m);
 	return 0;
 }
+
