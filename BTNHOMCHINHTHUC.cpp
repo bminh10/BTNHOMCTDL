@@ -1711,7 +1711,7 @@ int main() {
 					cin >> chon;
 					if (chon > 4 || chon <= 0)
 					{
-						cout << "chuc nang khon ton tai !!!! \n";
+						cout << "chuc nang khong ton tai !!!! \n";
 					}
 				} while (chon > 4 || chon <= 0);
 
@@ -1728,7 +1728,7 @@ int main() {
 					cin >> chon1;
 					if (chon1 > 4 || chon1 <= 0)
 					{
-						cout << "chuc nang khon ton tai !!!! \n";
+						cout << "chuc nang khong ton tai !!!! \n";
 					}
 				} while (chon1 > 4 || chon1 <= 0);
 
@@ -1742,7 +1742,7 @@ int main() {
 					cin >> chon2;
 					if (chon2 > 2 || chon2 <= 0)
 					{
-						cout << "chuc nang khon ton tai !!!! \n";
+						cout << "chuc nang khong ton tai !!!! \n";
 					}
 				} while (chon2 > 2 || chon2 <= 0);
 
@@ -1811,7 +1811,7 @@ int main() {
 			}
 			else
 			{
-				cout << "chuc nang khon ton tai !!!!! \n";
+				cout << "chuc nang khong ton tai !!!! \n";
 
 			}
 			if (flag) break;
@@ -2100,3 +2100,4 @@ int main() {
 
 	return 0;
 }
+
