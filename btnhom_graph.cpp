@@ -50,7 +50,8 @@ void init(Graph& m) {
 	m.ts = false;
 }
 
-//tạo đồ thị ngẫu nhiên
+//========== Tạo đồ thị ==========
+//tạo đồ thị ngẫu nhin
 void randomGraph(Graph& m) {
 	srand(time(NULL));
 	//đỉnh ngẫu nhiên từ 4 đến 9 đỉnh
@@ -72,12 +73,9 @@ void randomGraph(Graph& m) {
 		}
 	}
 
-
 	m.dir = false;
 	m.ts = true;
 	m.type = 1;
-
-
 
 	m.canuse = new bool[m.n];
 	m.visited = new int[m.n];
@@ -101,9 +99,6 @@ void randomGraph(Graph& m) {
 
 }
 
-
-
-//========== Tạo đồ thị ==========
 //Nhap ma tran tu file
 void readMatrixFromFile(Graph& m, const char* filename) {
 	ifstream f(filename);
@@ -141,9 +136,6 @@ void readMatrixFromFile(Graph& m, const char* filename) {
 		if (m.dir) break;
 	}
 
-
-
-
 	m.canuse = new bool[m.n];
 	m.visited = new int[m.n];
 	m.parent = new int[m.n];
@@ -154,6 +146,7 @@ void readMatrixFromFile(Graph& m, const char* filename) {
 		m.parent[i] = 0;
 		m.visited[i] = 0;
 	}
+
 	m.check = new int* [m.n];
 	for (int i = 0; i < m.n; i++) {
 		m.check[i] = new int[m.n];
@@ -163,7 +156,6 @@ void readMatrixFromFile(Graph& m, const char* filename) {
 			m.check[i][j] = 0;
 		}
 	}
-
 
 	f.close();
 }
@@ -286,132 +278,111 @@ bool existEdge(Graph& m, int u, int v) {
 //========== Thêm/Xóa đỉnh ==========
 //ham them dinh
 void addVertex(Graph& m, int v) {
-	if (v == 0) return;
+	//so dinh can them
+	if (v <= 0) return;
 	int newsize = m.n + v;
+
 	switch (m.type)
 	{
 	case 1: {
 		int** newmatrix = new int* [newsize];
+		//() : khoi tao lai moi phan tu bang 0
 		for (int i = 0; i < newsize; i++) {
-			newmatrix[i] = new int[newsize];
+			newmatrix[i] = new int[newsize]();
 		}
-
-		for (int i = 0; i < newsize; i++) {
-			for (int j = 0; j < newsize; j++) {
-				newmatrix[i][j] = 0;
-			}
-		}
+		//copy du lieu
 		for (int i = 0; i < m.n; i++) {
 			for (int j = 0; j < m.n; j++) {
 				newmatrix[i][j] = m.matrix[i][j];
 			}
 		}
-		for (int i = 0; i < m.n; i++) {
-			delete[] m.matrix[i];
-		}
+
+		for (int i = 0; i < m.n; i++) delete[] m.matrix[i];
+
 		delete[] m.matrix;
 		m.matrix = newmatrix;
-
 		break;
 	}
 	case 0: {
 		int** newlist = new int* [newsize];
-		for (int i = 0; i < newsize; i++) {
-			newlist[i] = nullptr;
-		}
-		for (int i = 0; i < m.n; i++) {
-			if (m.sz[i] > 0) {
+		int* newsz = new int[newsize]();
+
+		//copy du lieu
+		for(int i = 0; i < newsize; i++){
+			if(m.sz[i] > 0){
 				newlist[i] = new int[m.sz[i]];
-				for (int j = 0; j < m.sz[i]; j++) newlist[i][j] = m.list[i][j];
+				for(int j = 0; j < m.sz[i]; j++) newlist[i][j] = m.list[i][j];
 			}
-		}
-		for (int i = 0; i < m.n; i++) {
-			delete[] m.list[i];
-		}
-		delete[] m.list;
-		m.list = newlist;
-
-		int* newsz = new int[newsize];
-		for (int i = 0; i < newsize; i++) {
-			newsz[i] = 0;
-		}
-
-		for (int i = 0; i < m.n; i++) {
+			else{
+				newlist[i] = nullptr;
+			}
 			newsz[i] = m.sz[i];
 		}
-		delete[] m.sz;
-		m.sz = newsz;
 
+		//khoi tao bien moi null
+		for(int i = m.n; i < newsize; i++) newlist[i] = nullptr;
+
+		//xoa du lieu cu
+		for(int i = 0; i < m.n; i++) delete[] m.list[i];
+
+		delete[] m.list;
+		delete[] m.sz;
+
+		m.list = newlist;
+		m.sz = newsz;
 		break;
 	}
 	default:
 		break;
 	}
 
-
+//Canuse
 	bool* newcanuse = new bool[newsize];
-	for (int i = 0; i < newsize; i++) {
-		newcanuse[i] = true;
-	}
-	for (int i = 0; i < m.n; i++) {
-		newcanuse[i] = m.canuse[i];
-	}
+	//copy cai cu + cai mo 
+	for(int i = 0; i < m.n; i++) newcanuse[i] = m.canuse[i];
+	for(int i = m.n; i < newsize; i++) newcanuse[i] = true;
+
 	delete[] m.canuse;
 	m.canuse = newcanuse;
 
+//Check
+	//check + () : khoi tao 0 luon
 	int** newcheck = new int* [newsize];
-	for (int i = 0; i < newsize; i++) {
-		newcheck[i] = new int[newsize];
-	}
-	for (int i = 0; i < newsize; i++) {
-		for (int j = 0; j < newsize; j++) {
-			newcheck[i][j] = 0;
-		}
-	}
+	for (int i = 0; i < newsize; i++) newcheck[i] = new int[newsize]();
 	for (int i = 0; i < m.n; i++) {
 		for (int j = 0; j < m.n; j++) {
 			newcheck[i][j] = m.check[i][j];
 		}
 	}
-	for (int i = 0; i < m.n; i++) {
-		delete[] m.check[i];
-	}
+	for (int i = 0; i < m.n; i++) delete[] m.check[i];
 	delete[] m.check;
 	m.check = newcheck;
 
+//visited
 	int* newvisited = new int[newsize];
-	for (int i = 0; i < newsize; i++) {
-		newvisited[i] = 0;
-	}
-	for (int i = 0; i < m.n; i++) {
-		newvisited[i] = m.visited[i];
-	}
-	delete[] m.visited;
-	m.visited = newvisited;
+	for (int i = 0; i < m.n; i++) newvisited[i] = m.visited[i];
+    for (int i = m.n; i < newsize; i++) newvisited[i] = 0;
+    delete[] m.visited;
+    m.visited = newvisited;
 
+//parent
 	int* newparent = new int[newsize];
-	for (int i = 0; i < newsize; i++) {
-		newparent[i] = -1;
-	}
-	for (int i = 0; i < m.n; i++) {
-		newparent[i] = m.parent[i];
-	}
-	delete[] m.parent;
-	m.parent = newparent;
+	for (int i = 0; i < m.n; i++) newparent[i] = m.parent[i];
+    for (int i = m.n; i < newsize; i++) newparent[i] = -1;
+    delete[] m.parent;
+    m.parent = newparent;
 
+//lable
 	int* newlabel = new int[newsize];
-	for (int i = 0; i < newsize; i++) {
-		newlabel[i] = 0;
-	}
-	for (int i = 0; i < m.n; i++) {
-		newlabel[i] = m.label[i];
-	}
-	delete[] m.label;
-	m.label = newlabel;
+    for (int i = 0; i < m.n; i++) newlabel[i] = m.label[i];
+    for (int i = m.n; i < newsize; i++) newlabel[i] = 0;
+    delete[] m.label;
+    m.label = newlabel;
 
-	m.n = newsize;
-
+    m.n = newsize;
 }
+
+
 
 //ham xoa dinh
 void delVertex(Graph& m, int v) {
@@ -486,7 +457,7 @@ void push(int*& a, int& n, int x)
 //========== Thêm/Xóa cạnh ==========
  //ham them canh
 void addEdge(Graph& m, int a, int b) {
-	//khôngg cho thêm cạnh có 1 đỉnh đã bị xoá trước đó
+	//không cho thêm cạnh có 1 đỉnh đã bị xoá trước đó
 	if (m.canuse[a] == false || m.canuse[b] == false) {
 		cout << "Canh khong hop le \n";
 		return;
@@ -785,10 +756,6 @@ void dfs(Graph& m, int u, int label) {
 }
 
 
-
-
-
-
 int countConnected(Graph& m) {
 
 	for (int i = 0; i < m.n; i++) {
@@ -992,6 +959,7 @@ void dijkstra(Graph& m, int start, int end) {
 }
 
 //2. Bellman Ford
+
 void bellmanFord(Graph& m, int start, int end) {
 	if (!m.ts) {
 		cout << "Do thi khong co trong so\n";
@@ -1038,7 +1006,7 @@ void bellmanFord(Graph& m, int start, int end) {
 	delete[] d;
 }
 
-//1. Floyd Warshall
+//3. Floyd Warshall
 void floydWarshall(Graph& m, int start, int end) {
 	if (!m.ts) {
 		cout << "Do thi khong co trong so\n";
@@ -1325,7 +1293,7 @@ int main() {
 		cout << "4. xoa canh\n";
 		cout << "5. bfs\n";
 		cout << "6. dfs\n";
-		if (m.type != 0 && m.ts == true) {
+		if (m.type != 0) {
 			cout << "7. krusal\n";
 			cout << "8. prim\n";
 			cout << "9. Dijkstra\n";
@@ -1340,7 +1308,7 @@ int main() {
 		{
 		case 1: {
 			int v;
-			cout << "Nhap so dinh can them: \n";
+			cout << "Nhap so dinh can them: ";
 			cin >> v;
 
 			addVertex(m, v);
@@ -1348,7 +1316,7 @@ int main() {
 		}
 		case 2: {
 			int v;
-			cout << "Nhap dinh can xoa: \n";
+			cout << "Nhap dinh can xoa: ";
 			cin >> v;
 			v--;
 			delVertex(m, v);
@@ -1390,7 +1358,7 @@ int main() {
 			break;
 		}
 
-			  if (m.type != 0 && m.ts==true) {
+			  if (m.type != 0) {
 		case 6: {
 			int v;
 			cout << "Nhap dinh bat dau: ";
@@ -1571,5 +1539,3 @@ int main() {
 	del(m);
 	return 0;
 }
-
-
