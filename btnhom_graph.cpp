@@ -50,7 +50,7 @@ void init(Graph& m) {
 	m.ts = false;
 }
 
-//tạo đồ thị ngẫu nhin
+//tạo đồ thị ngẫu nhiên
 void randomGraph(Graph& m) {
 	srand(time(NULL));
 	//đỉnh ngẫu nhiên từ 4 đến 9 đỉnh
@@ -1571,4 +1571,5 @@ int main() {
 	del(m);
 	return 0;
 }
+
 
