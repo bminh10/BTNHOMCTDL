@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <stack>
 #include <queue>
@@ -1659,321 +1659,444 @@ void del(Graph& m) {
 
 int main() {
 
-	cout << "CHAO MUNG BAN DA DEN VOI APP SORTING VA GRAPH \n";
-	cout << "Ung dung co the lam viec voi: \n";
-	cout << "1.Thuat toan sap xep \n";
-	cout << "2.Do thi \n";
-	cout << "Ban muon lam viec voi ( chon 1 hoac 2 ):  ";
+	int  menu = 0;
 
-	int  menu;
-
-
-
-	Graph m;
-	init(m);
-
-	// ===== CHON CACH NHAP DO THI =====
-	cout << "Nhap do thi tu FILE (1) / Nhap tay (2) / Tao do thi ngau nhien (3): ";
-	int choice;	cin >> choice;
-
-	if (choice == 1) {
-		readMatrixFromFile(m, "matrix.txt");
-	}
-	else if (choice == 2) {
-
-		// ===== NHAP TAY =====
-
-		cout << "Dung ma tran ke (1) / danh sach ke (0): ";
-		cin >> m.type;
-
-		if (m.type == 1) {
-			int tmp;
-			cout << "Do thi co trong so (1) / khong (0): ";
-			cin >> tmp;
-			m.ts = (tmp == 1);
-		}
-		else {
-			m.ts = 0;
-		}
-
-		if (m.type == 0) {
-			cout << "Do thi co huong ( bam 1 ) / vo huong ( bam 0 ): ";
-			cin >> m.dir;
-		}
-
-
-
-		createGraph(m);
-		cout << "=== DO THI NHAP TAY ===\n";
-	}
-	else {
-		randomGraph(m);
-	}
-
-	output(m);
-
-	int res1 = isGraph(m);
-	if (res1 != -1) {
-		cout << "So canh cua do thi hien tai : " << res1 << "\n";
-	}
-
-	// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
-	res1 = countConnected(m);
-
-	int c;
+	int c2;
 	do
 	{
-		cout << "MENU \n";
-		cout << "1. Them dinh\n";
-		cout << "2. xoa dinh\n";
-		cout << "3. them canh\n";
-		cout << "4. xoa canh\n";
-		cout << "5. bfs\n";
-		cout << "6. dfs\n";
-		if (m.type != 0) {
-			cout << "7. krusal\n";
-			cout << "8. prim\n";
-			cout << "9. Dijkstra\n";
-			cout << "10. Bellman Ford\n";
-			cout << "11. Floyd Warshall\n";
-		}
-		cout << "Chon chuc nang: ";
-		int chose;
-		cin >> chose;
-
-		switch (chose)
+		cout << "CHAO MUNG BAN DA DEN VOI APP SORTING VA GRAPH \n";
+		cout << "Ung dung co the lam viec voi: \n";
+		cout << "1.Thuat toan sap xep \n";
+		cout << "2.Do thi \n";
+		cout << "Ban muon lam viec voi ( chon 1 hoac 2 ):  ";
+		cin >> menu;
+		switch (menu)
 		{
-		case 1: {
-			int v;
-			cout << "Nhap so dinh can them: ";
-			cin >> v;
+		case 1:
+		{
+			//luu tru du lieu bang hashtable
+			SinhVien** a;
+			//mang sz luu tru kich thuoc moi bucket
+			int* sz;
 
-			addVertex(m, v);
+			//luu tru du lieu bang mang khi nguoi dung chon sort theo mssv,diem trung binh,hoc phi
+			List l;
+
+
+
+			int c;
+			do
+			{
+				a = nullptr;
+				l.list = nullptr;
+				l.n = 0;
+				a = new SinhVien * [M];
+				sz = new int[M];
+				for (int i = 0; i < M; i++) {
+					a[i] = nullptr;
+					sz[i] = 0;
+				}
+				readData(a, sz);
+				output(a, sz);
+				cout << "MENU\n";
+				cout << "1. Shell sort \n";
+				cout << "2. counting sort \n";
+				cout << "3. radix sort \n";
+				cout << "4. bucket sort \n";
+				int chon;
+
+				do
+				{
+					cout << "Chon chuc nang: ";
+					cin >> chon;
+					if (chon > 4 || chon <= 0)
+					{
+						cout << "chuc nang khon ton tai !!!! \n";
+					}
+				} while (chon > 4 || chon <= 0);
+
+				cout << "MENU\n";
+				cout << "1. MSSV \n";
+				cout << "2. Ten \n";
+				cout << "3. DTB \n";
+				cout << "4. HP\n";
+				int chon1;
+
+				do
+				{
+					cout << "Ban muon sort theo: ";
+					cin >> chon1;
+					if (chon1 > 4 || chon1 <= 0)
+					{
+						cout << "chuc nang khon ton tai !!!! \n";
+					}
+				} while (chon1 > 4 || chon1 <= 0);
+
+				cout << "MENU\n";
+				cout << "1. Tang dan \n";
+				cout << "2. Giam dan\n";
+				int chon2;
+				do
+				{
+					cout << "Chon thu tu sap xep: ";
+					cin >> chon2;
+					if (chon2 > 2 || chon2 <= 0)
+					{
+						cout << "chuc nang khon ton tai !!!! \n";
+					}
+				} while (chon2 > 2 || chon2 <= 0);
+
+				process(a, sz, chon, chon1, chon2, l);
+
+				cout << "Tiep tuc ( bam 1 ) / ket thuc( bam 0 ): ";
+				cin >> c;
+			} while (c == 1);
+
+
+
+			for (int i = 0; i < M; i++) {
+				delete[]a[i];
+			}
+			delete[]l.list;
+			delete[]a;
+			delete[]sz;
+
+
 			break;
 		}
-		case 2: {
-			int v;
-			cout << "Nhap dinh can xoa: ";
-			cin >> v;
-			v--;
-			delVertex(m, v);
-			break;
-		}
-		case 3: {
-			int a, b;
-			cout << "Nhap canh a: ";
-			cin >> a;
-			cout << "Nhap canh b: ";
-			cin >> b;
-			a--; b--;
-			addEdge(m, a, b);
-			break;
-		}
-		case 4: {
-			int a, b;
-			cout << "Nhap canh a: ";
-			cin >> a;
-			cout << "Nhap canh b: ";
-			cin >> b;
-			a--; b--;
-			delEdge(m, a, b);
-			break;
-		}
-		case 5: {
-			int v;
-			cout << "Nhap dinh bat dau: ";
-			cin >> v;
-			v--;
-			if (existVertex(m, v)) {
-				cout << "Thu tu duyet : ";
-				BFS(m, v);
+		case 2:
+		{
+			Graph m;
+			init(m);
+
+			// ===== CHON CACH NHAP DO THI =====
+			cout << "Nhap do thi tu FILE (1) / Nhap tay (2) / Tao do thi ngau nhien (3): ";
+			int choice;	cin >> choice;
+			bool flag = true;
+			if (choice == 1) {
+				readMatrixFromFile(m, "matrix.txt");
+				flag = false;
 			}
-			else {
-				cout << "Dinh khong ton tai \n";
-			}
+			else if (choice == 2) {
 
-			break;
-		}
+				// ===== NHAP TAY =====
 
-			  if (m.type != 0) {
-		case 6: {
-			int v;
-			cout << "Nhap dinh bat dau: ";
-			cin >> v;
-			v--;
-			if (existVertex(m, v)) {
-				cout << "Thu tu duyet : ";
-				DFS(m, v);
-			}
-			else {
-				cout << "Dinh khong ton tai \n";
-			}
+				cout << "Dung ma tran ke (1) / danh sach ke (0): ";
+				cin >> m.type;
 
-
-			break;
-		}
-
-		case 7: {
-
-			if (res1 != -1) {
-				if (m.type == 1) kruskal(m);
-				else cout << "Kruskal chi hoat dong tren ma tran ke co trong so.\n";
-			}
-			else {
-				cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
-			}
-		}
-
-			  break;
-
-
-		case 8: {
-
-			if (res1 != -1) {
-				int v;
-				cout << "Nhap dinh bat dau : ";
-				cin >> v;
-				v--;
-				if (existVertex(m, v)) {
-					if (m.type == 1) prim(m, v); // chọn start = 0
-					else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
+				if (m.type == 1) {
+					int tmp;
+					cout << "Do thi co trong so (1) / khong (0): ";
+					cin >> tmp;
+					m.ts = (tmp == 1);
 				}
 				else {
-					cout << "Dinh khong ton tai !\n";
+					m.ts = 0;
+				}
+
+				if (m.type == 0) {
+					cout << "Do thi co huong ( bam 1 ) / vo huong ( bam 0 ): ";
+					cin >> m.dir;
 				}
 
 
+
+				createGraph(m);
+				cout << "=== DO THI NHAP TAY ===\n";
+				flag = false;
+			}
+			else if (choice == 3) {
+				randomGraph(m);
+				flag = false;
+			}
+			else
+			{
+				cout << "chuc nang khon ton tai !!!!! \n";
+
+			}
+			if (flag) break;
+
+
+
+			output(m);
+
+			int res1 = isGraph(m);
+			if (res1 != -1) {
+				cout << "So canh cua do thi hien tai : " << res1 << "\n";
 			}
 
+			// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
+			res1 = countConnected(m);
+
+			int c1 = 0;
+			do
+			{
+				cout << "MENU \n";
+				cout << "1. Them dinh\n";
+				cout << "2. xoa dinh\n";
+				cout << "3. them canh\n";
+				cout << "4. xoa canh\n";
+				cout << "5. bfs\n";
+				cout << "6. dfs\n";
+				if (m.type != 0) {
+					cout << "7. krusal\n";
+					cout << "8. prim\n";
+					cout << "9. Dijkstra\n";
+					cout << "10. Bellman Ford\n";
+					cout << "11. Floyd Warshall\n";
+				}
+				cout << "Chon chuc nang: ";
+				int chose;
+				cin >> chose;
+
+				switch (chose)
+				{
+				case 1: {
+					int v;
+					cout << "Nhap so dinh can them: ";
+					cin >> v;
+
+					addVertex(m, v);
+					break;
+				}
+				case 2: {
+					int v;
+					cout << "Nhap dinh can xoa: ";
+					cin >> v;
+					v--;
+					delVertex(m, v);
+					break;
+				}
+				case 3: {
+					int a, b;
+					cout << "Nhap canh a: ";
+					cin >> a;
+					cout << "Nhap canh b: ";
+					cin >> b;
+					a--; b--;
+					addEdge(m, a, b);
+					break;
+				}
+				case 4: {
+					int a, b;
+					cout << "Nhap canh a: ";
+					cin >> a;
+					cout << "Nhap canh b: ";
+					cin >> b;
+					a--; b--;
+					delEdge(m, a, b);
+					break;
+				}
+				case 5: {
+					int v;
+					cout << "Nhap dinh bat dau: ";
+					cin >> v;
+					v--;
+					if (existVertex(m, v)) {
+						cout << "Thu tu duyet : ";
+						BFS(m, v);
+					}
+					else {
+						cout << "Dinh khong ton tai \n";
+					}
+
+					break;
+				}
+
+					  if (m.type != 0) {
+				case 6: {
+					int v;
+					cout << "Nhap dinh bat dau: ";
+					cin >> v;
+					v--;
+					if (existVertex(m, v)) {
+						cout << "Thu tu duyet : ";
+						DFS(m, v);
+					}
+					else {
+						cout << "Dinh khong ton tai \n";
+					}
+
+
+					break;
+				}
+
+				case 7: {
+
+					if (res1 != -1) {
+						if (m.type == 1) kruskal(m);
+						else cout << "Kruskal chi hoat dong tren ma tran ke co trong so.\n";
+					}
+					else {
+						cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
+					}
+				}
+
+					  break;
+
+
+				case 8: {
+
+					if (res1 != -1) {
+						int v;
+						cout << "Nhap dinh bat dau : ";
+						cin >> v;
+						v--;
+						if (existVertex(m, v)) {
+							if (m.type == 1) prim(m, v); // chọn start = 0
+							else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
+						}
+						else {
+							cout << "Dinh khong ton tai !\n";
+						}
+
+
+					}
+
+					break;
+				}
+
+				case 9: {
+
+					int s, t;
+					cout << "Nhap dinh bat dau: ";
+					cin >> s;
+					s--;
+
+					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+					cin >> t;
+
+
+					if (t != -1) t--;
+
+
+
+					dijkstra(m, s, t);
+
+					break;
+				}
+				case 10: {
+
+					int s, t;
+					cout << "Nhap dinh bat dau: ";
+					cin >> s;
+					s--;
+
+					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+					cin >> t;
+					if (t != -1) t--;
+
+					bellmanFord(m, s, t);
+
+
+					break;
+				}
+				case 11:
+				{
+
+					int s, t;
+					cout << "Nhap dinh bat dau: ";
+					cin >> s;
+					s--;
+
+					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+					cin >> t;
+					if (t != -1) t--;
+
+					floydWarshall(m, s, t);
+
+
+					break;
+				}
+
+					  }
+
+				default:
+					cout << "Chuc nang khong ton tai \n";
+					break;
+				}
+				output(m);
+				res1 = isGraph(m);
+				if (res1 != -1) {
+					cout << "So canh cua do thi hien tai : " << res1 << "\n";
+				}
+
+				// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
+				res1 = countConnected(m);
+
+				cout << "Tiep tuc ( bam 1 )/ ket thuc ( bam 0 ) : ";
+				cin >> c1;
+			} while (c1 == 1);
+
+
+
+
+			// kiểm tra chu trình: dùng hàm checkCycle có sẵn
+			if (m.dir == 0) {
+				for (int i = 0; i < m.n; i++) {
+					m.visited[i] = 0;
+					m.parent[i] = -1;
+				}
+				int s = -1, g = -1;
+				bool res = false;
+				for (int i = 0; i < m.n; i++) {
+
+					if (m.visited[i] == 0) {
+						// dùng hàm checkCycle đã có (dùng cho cả có hướng & vô hướng)
+						res = checkCycle(m, i, s, g);
+					}
+					if (res == true) {
+						break;
+					}
+				}
+				if (res) {
+					cout << "Co chu trinh \n";
+					displayCycle(m, s, g);
+				}
+				else {
+					cout << "Khong co chu trinh \n";
+				}
+
+			}
+			else {
+				for (int i = 0; i < m.n; i++) {
+					m.visited[i] = 0;
+					m.parent[i] = -1;
+				}
+				int s = -1, g = -1;
+				bool res = false;
+				for (int i = 0; i < m.n; i++) {
+					if (m.visited[i] == 0) {
+						res = checkCycle(m, i, s, g);
+					}
+					if (res == true) {
+						break;
+					}
+				}
+				if (res) {
+					cout << "Co chu trinh \n";
+					displayCycle(m, s, g);
+				}
+				else {
+					cout << "Khong co chu trinh \n";
+				}
+			}
+
+			del(m);
+
 			break;
 		}
-
-		case 9: {
-
-			int s, t;
-			cout << "Nhap dinh bat dau: ";
-			cin >> s;
-			s--;
-
-			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-			cin >> t;
-
-
-			if (t != -1) t--;
-
-
-
-			dijkstra(m, s, t);
-
-			break;
-		}
-		case 10: {
-
-			int s, t;
-			cout << "Nhap dinh bat dau: ";
-			cin >> s;
-			s--;
-
-			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-			cin >> t;
-			if (t != -1) t--;
-
-			bellmanFord(m, s, t);
-
-
-			break;
-		}
-		case 11:
-		{
-
-			int s, t;
-			cout << "Nhap dinh bat dau: ";
-			cin >> s;
-			s--;
-
-			cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-			cin >> t;
-			if (t != -1) t--;
-
-			floydWarshall(m, s, t);
-
-
-			break;
-		}
-
-			  }
-
 		default:
-			cout << "Chuc nang khong ton tai \n";
+			cout << "chuc nang khong ton tai !!!! \n";
 			break;
 		}
-		output(m);
-		res1 = isGraph(m);
-		if (res1 != -1) {
-			cout << "So canh cua do thi hien tai : " << res1 << "\n";
-		}
 
-		// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
-		res1 = countConnected(m);
 
-		cout << "Tiep tuc ( bam 1 )/ ket thuc ( bam 0 ) : ";
-		cin >> c;
-	} while (c == 1);
+		cout << "tiep tuc su dung bam 1/ ket thuc bam 0: ";
+		cin >> c2;
+	} while (c2 == 1);
 
 
 
-
-	// kiểm tra chu trình: dùng hàm checkCycle có sẵn
-	if (m.dir == 0) {
-		for (int i = 0; i < m.n; i++) {
-			m.visited[i] = 0;
-			m.parent[i] = -1;
-		}
-		int s = -1, g = -1;
-		bool res = false;
-		for (int i = 0; i < m.n; i++) {
-			
-			if (m.visited[i] == 0) {
-				// dùng hàm checkCycle đã có (dùng cho cả có hướng & vô hướng)
-				res = checkCycle(m, i, s, g);
-			}
-			if (res == true) {
-				break;
-			}
-		}
-		if (res) {
-			cout << "Co chu trinh \n";
-			displayCycle(m, s, g);
-		}
-		else {
-			cout << "Khong co chu trinh \n";
-		}
-
-	}
-	else {
-		for (int i = 0; i < m.n; i++) {
-			m.visited[i] = 0;
-			m.parent[i] = -1;
-		}
-		int s = -1, g = -1;
-		bool res = false;
-		for (int i = 0; i < m.n; i++) {
-			if (m.visited[i] == 0) {
-				res = checkCycle(m, i, s, g);
-			}
-			if (res == true) {
-				break;
-			}
-		}
-		if (res) {
-			cout << "Co chu trinh \n";
-			displayCycle(m, s, g);
-		}
-		else {
-			cout << "Khong co chu trinh \n";
-		}
-	}
-
-	del(m);
 	return 0;
 }
