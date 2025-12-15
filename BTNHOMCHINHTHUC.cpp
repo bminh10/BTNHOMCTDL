@@ -2094,10 +2094,10 @@ int main() {
 
 		cout << "tiep tuc su dung bam 1/ ket thuc bam 0: ";
 		cin >> c2;
+		system("cls");
 	} while (c2 == 1);
 
 
 
 	return 0;
 }
-
