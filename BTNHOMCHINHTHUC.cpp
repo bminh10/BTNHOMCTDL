@@ -1958,53 +1958,67 @@ int main() {
 
 				case 9: {
 
-					int s, t;
-					cout << "Nhap dinh bat dau: ";
-					cin >> s;
-					s--;
-
-					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-					cin >> t;
-
-
-					if (t != -1) t--;
+					if (res1 != -1) {
+						int s, t;
+						cout << "Nhap dinh bat dau: ";
+						cin >> s;
+						s--;
+	
+						cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+						cin >> t;
 
 
+						if (t != -1) t--;
 
-					dijkstra(m, s, t);
 
-					break;
+
+						dijkstra(m, s, t);
+					}
+					else {
+						cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
+					}
+
+
+				break;
 				}
 				case 10: {
 
-					int s, t;
-					cout << "Nhap dinh bat dau: ";
-					cin >> s;
-					s--;
+					if (res1 != -1) {
+						int s, t;
+						cout << "Nhap dinh bat dau: ";
+						cin >> s;
+						s--;
 
-					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-					cin >> t;
-					if (t != -1) t--;
+						cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+						cin >> t;
+						if (t != -1) t--;
 
-					bellmanFord(m, s, t);
-
-
+						bellmanFord(m, s, t);
+					}
+					else {
+						cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
+					}	
+					
 					break;
 				}
 				case 11:
 				{
 
-					int s, t;
-					cout << "Nhap dinh bat dau: ";
-					cin >> s;
-					s--;
+					if (res1 != -1) {
+						int s, t;
+						cout << "Nhap dinh bat dau: ";
+						cin >> s;
+						s--;
 
-					cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
-					cin >> t;
-					if (t != -1) t--;
+						cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
+						cin >> t;
+						if (t != -1) t--;
 
-					floydWarshall(m, s, t);
-
+						floydWarshall(m, s, t);
+					}
+					else {
+						cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
+					}
 
 					break;
 				}
@@ -2101,4 +2115,5 @@ int main() {
 
 	return 0;
 }
+
 
