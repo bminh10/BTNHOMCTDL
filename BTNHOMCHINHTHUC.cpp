@@ -1924,7 +1924,7 @@ int main() {
 				case 7: {
 
 					if (res1 != -1) {
-						if (m.type == 1) kruskal(m);
+						if (m.type == 1 && m.ts==1) kruskal(m);
 						else cout << "Kruskal chi hoat dong tren ma tran ke co trong so.\n";
 					}
 					else {
@@ -1943,7 +1943,7 @@ int main() {
 						cin >> v;
 						v--;
 						if (existVertex(m, v)) {
-							if (m.type == 1) prim(m, v); // chọn start = 0
+							if (m.type == 1 && m.ts==1) prim(m, v); // chọn start = 0
 							else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
 						}
 						else {
@@ -2101,3 +2101,4 @@ int main() {
 
 	return 0;
 }
+
