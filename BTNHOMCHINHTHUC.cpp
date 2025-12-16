@@ -1020,7 +1020,7 @@ int isGraph(Graph& m) {
 		for (int i = 0; i < m.n; i++) {
 			if (!m.canuse[i]) continue;
 			for (int j = 0; j < m.n; j++) {
-				if (m.matrix[i][j] > 0 && m.check[j][i] == 0 && m.canuse[j]) {
+				if (m.matrix[i][j] != 0 && m.check[j][i] == 0 && m.canuse[j]) {
 					res++;
 					m.check[i][j] = 1;
 				}
@@ -1164,7 +1164,7 @@ void dfs(Graph& m, int u, int label) {
 		if (m.type == 1) {  // matrix
 			for (int x = 0; x < m.n; x++) {
 				if (!existVertex(m, x)) continue;
-				if (m.matrix[v][x] > 0 && !m.visited[x]) {
+				if (m.matrix[v][x] != 0 && !m.visited[x]) {
 					s.push(x);
 				}
 			}
@@ -1227,7 +1227,7 @@ bool checkCycle(Graph& m, int v, int& start, int& goal) {
 	if (m.type == 1) { // Ma tran ke
 		for (int i = 0; i < m.n; i++) {
 			if (!existVertex(m, i)) continue;
-			if (m.matrix[v][i] > 0) {
+			if (m.matrix[v][i] != 0) {
 				if (m.visited[i] == 0) {
 					m.parent[i] = v;
 					if (checkCycle(m, i, start, goal)) return true;
@@ -1369,6 +1369,11 @@ void dijkstra(Graph& m, int start, int end) {
 		m.visited[u] = true;
 
 		for (int v = 0; v < m.n; v++) {
+			if (m.matrix[u][v] < 0) {
+				cout << "Do thi co canh mang trong so am ! \n khong the tinh duong di ngan nhat !\n";
+				delete[]d;
+				return;
+			}
 			if (m.matrix[u][v] > 0 &&
 				!m.visited[v] &&
 				d[u] + m.matrix[u][v] < d[v]) {
@@ -1404,7 +1409,7 @@ void bellmanFord(Graph& m, int start, int end) {
 		for (int u = 0; u < m.n; u++) {
 			if (d[u] == INF) continue;
 			for (int v = 0; v < m.n; v++) {
-				if (m.matrix[u][v] > 0 &&
+				if (m.matrix[u][v] != 0 &&
 					d[u] + m.matrix[u][v] < d[v]) {
 					d[v] = d[u] + m.matrix[u][v];
 					m.parent[v] = u;
@@ -1417,7 +1422,7 @@ void bellmanFord(Graph& m, int start, int end) {
 	for (int u = 0; u < m.n; u++) {
 		if (d[u] == INF) continue;
 		for (int v = 0; v < m.n; v++) {
-			if (m.matrix[u][v] > 0 &&
+			if (m.matrix[u][v] != 0 &&
 				d[u] + m.matrix[u][v] < d[v]) {
 				cout << "Chu trinh am\n";
 				delete[] d;
@@ -1428,6 +1433,7 @@ void bellmanFord(Graph& m, int start, int end) {
 
 	cout << "===== BELLMAN FORD =====\n";
 	printRes(m, start, end, d);
+	
 
 	delete[] d;
 }
@@ -1827,7 +1833,6 @@ int main() {
 
 			// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
 			res1 = countConnected(m);
-
 			int c1 = 0;
 			do
 			{
@@ -1924,7 +1929,7 @@ int main() {
 				case 7: {
 
 					if (res1 != -1) {
-						if (m.type == 1 && m.ts==1) kruskal(m);
+						if (m.type == 1 && m.ts == 1) kruskal(m);
 						else cout << "Kruskal chi hoat dong tren ma tran ke co trong so.\n";
 					}
 					else {
@@ -1943,7 +1948,7 @@ int main() {
 						cin >> v;
 						v--;
 						if (existVertex(m, v)) {
-							if (m.type == 1 && m.ts==1) prim(m, v); // chọn start = 0
+							if (m.type == 1 && m.ts == 1) prim(m, v); // chọn start = 0
 							else cout << "Prim chi hoat dong tren ma tran ke co trong so.\n";
 						}
 						else {
@@ -1963,7 +1968,7 @@ int main() {
 						cout << "Nhap dinh bat dau: ";
 						cin >> s;
 						s--;
-	
+
 						cout << "Nhap dinh ket thuc (-1 neu muon tinh tat ca): ";
 						cin >> t;
 
@@ -1979,7 +1984,7 @@ int main() {
 					}
 
 
-				break;
+					break;
 				}
 				case 10: {
 
@@ -1997,8 +2002,8 @@ int main() {
 					}
 					else {
 						cout << "Do thi khong lien thong nen khong the dung thuat toan ! \n";
-					}	
-					
+					}
+
 					break;
 				}
 				case 11:
@@ -2038,6 +2043,56 @@ int main() {
 				// gọi hàm đếm thành phần liên thông (thay cho cntTPLT)
 				res1 = countConnected(m);
 
+				// kiểm tra chu trình: dùng hàm checkCycle có sẵn
+				if (m.dir == 0) {//
+					for (int i = 0; i < m.n; i++) {
+						m.visited[i] = 0;
+						m.parent[i] = -1;
+					}
+					int s = -1, g = -1;
+					bool res = false;
+					for (int i = 0; i < m.n; i++) {
+
+						if (m.visited[i] == 0) {
+							// dùng hàm checkCycle đã có (dùng cho cả có hướng & vô hướng)
+							res = checkCycle(m, i, s, g);
+						}
+						if (res == true) {
+							break;
+						}
+					}
+					if (res) {
+						cout << "Co chu trinh \n";
+						displayCycle(m, s, g);
+					}
+					else {
+						cout << "Khong co chu trinh \n";
+					}
+
+				}
+				else {
+					for (int i = 0; i < m.n; i++) {
+						m.visited[i] = 0;
+						m.parent[i] = -1;
+					}
+					int s = -1, g = -1;
+					bool res = false;
+					for (int i = 0; i < m.n; i++) {
+						if (m.visited[i] == 0) {
+							res = checkCycle(m, i, s, g);
+						}
+						if (res == true) {
+							break;
+						}
+					}
+					if (res) {
+						cout << "Co chu trinh \n";
+						displayCycle(m, s, g);
+					}
+					else {
+						cout << "Khong co chu trinh \n";
+					}
+				}//
 				cout << "Tiep tuc ( bam 1 )/ ket thuc ( bam 0 ) : ";
 				cin >> c1;
 			} while (c1 == 1);
@@ -2045,56 +2100,7 @@ int main() {
 
 
 
-			// kiểm tra chu trình: dùng hàm checkCycle có sẵn
-			if (m.dir == 0) {
-				for (int i = 0; i < m.n; i++) {
-					m.visited[i] = 0;
-					m.parent[i] = -1;
-				}
-				int s = -1, g = -1;
-				bool res = false;
-				for (int i = 0; i < m.n; i++) {
-
-					if (m.visited[i] == 0) {
-						// dùng hàm checkCycle đã có (dùng cho cả có hướng & vô hướng)
-						res = checkCycle(m, i, s, g);
-					}
-					if (res == true) {
-						break;
-					}
-				}
-				if (res) {
-					cout << "Co chu trinh \n";
-					displayCycle(m, s, g);
-				}
-				else {
-					cout << "Khong co chu trinh \n";
-				}
-
-			}
-			else {
-				for (int i = 0; i < m.n; i++) {
-					m.visited[i] = 0;
-					m.parent[i] = -1;
-				}
-				int s = -1, g = -1;
-				bool res = false;
-				for (int i = 0; i < m.n; i++) {
-					if (m.visited[i] == 0) {
-						res = checkCycle(m, i, s, g);
-					}
-					if (res == true) {
-						break;
-					}
-				}
-				if (res) {
-					cout << "Co chu trinh \n";
-					displayCycle(m, s, g);
-				}
-				else {
-					cout << "Khong co chu trinh \n";
-				}
-			}
+			
 
 			del(m);
 
@@ -2110,10 +2116,9 @@ int main() {
 		cin >> c2;
 		system("cls");
 	} while (c2 == 1);
-
+	cout << "Cam on da su dung ung dung cua chung toi !\n";
 
 
 	return 0;
 }
-
 
